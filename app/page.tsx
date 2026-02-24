@@ -2,7 +2,7 @@ export default function Home() {
   return (
     <div className="p-10">
       
-      <h1 className="text-4xl font-bold text-violet-600">
+      <h1 className="text-4xl font-bold text-black-600">
         Hello I'M MALLANNA
         <img src="https://www.cinejosh.com/gallereys/movies/normal/mallanna/mallanna_081.jpg"
         alt="logo"
