@@ -6,7 +6,7 @@ export default function Home() {
         Hello I'M MALLANNA
         <img src="https://www.cinejosh.com/gallereys/movies/normal/mallanna/mallanna_081.jpg"
         alt="logo"
-        className="w-30 h-30 square-full"></img>
+        className="w-100 h-100 square-full"></img>
       </h1>
     </div>
   );
