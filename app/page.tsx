@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <main className="min-h-screen w-full bg-[url('https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=1920')] bg-cover bg-center bg-no-repeat bg-fixed">
+    <main className="min-h-screen w-full bg-[url('https://unsplash.com/s/photos/4k-laptop-wallpaper?auto=format&fit=crop&q=80&w=1920')] bg-cover bg-center bg-no-repeat bg-fixed">
       {/* Dark overlay with blur to make text readable on all devices */}
       <div className="flex items-center justify-center min-h-screen bg-black/50 backdrop-blur-sm">
         <div className="text-center">
