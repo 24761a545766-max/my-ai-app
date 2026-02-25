@@ -4,7 +4,7 @@ export default function Home() {
       
       <h1 className="text-4xl font-bold text-pink-600">
         Hello I'M MALLANNA
-        <img src="https://wallpapercat.com/laptop-wallpapers"
+        <img src="https://wallpapercat.com/laptop-wallpapers.jpg"
         alt="logo"
         className="w-100 h-100 square-full"></img>
       </h1>
