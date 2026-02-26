@@ -58,13 +58,15 @@ export default function Home() {
         {/* Bottom: Search Engine Bar */}
         <div className="w-full max-w-2xl animate-slideUp">
           <form onSubmit={handleSearch} className="relative group">
+            <center>
             <input 
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask the depths..."
+              placeholder="Ask the tought you have..."
               className="w-full bg-white/10 backdrop-blur-2xl border border-white/30 rounded-full py-5 px-8 pr-16 text-white placeholder-white/60 outline-none ring-2 ring-transparent focus:ring-orange-400/50 transition-all duration-300 shadow-2xl text-lg"
             />
+            </center>
             <button 
               type="submit"
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-400 text-white p-3 rounded-full transition-colors shadow-lg"
