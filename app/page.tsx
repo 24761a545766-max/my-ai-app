@@ -14,7 +14,7 @@ export default function Home() {
       creature.innerHTML = creatures[Math.floor(Math.random() * creatures.length)];
       
       const top = Math.random() * 90;
-      const startLeft = isGoingRight ? -50 : window.innerWidth + 50;
+      const startLeft = isGoingRight ? +50 : window.innerWidth - 50;
       const endLeft = isGoingRight ? window.innerWidth + 50 : -50;
       
       creature.style.top = `${top}%`;
