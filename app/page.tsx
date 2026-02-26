@@ -22,7 +22,7 @@ export default function Home() {
       
       // Flip the emoji based on direction
       if (!isGoingRight) {
-        creature.style.transform = "scaleX(-1)";
+        creature.style.transform = "scaleX(1)";
       }
 
       document.body.appendChild(creature);
@@ -83,7 +83,7 @@ export default function Home() {
         {/* Status Badge */}
         <div className="mt-12 flex flex-col items-center">
           <p className="text-[#00334d] font-bold text-lg bg-white/40 backdrop-blur-md px-8 py-3 rounded-2xl border border-white/20 shadow-xl transition-all hover:bg-white/60">
-            Scanning the waves...
+            Go with Flow...
           </p>
           <div className="mt-4 flex space-x-2">
             <span className="w-2 h-2 bg-white rounded-full animate-bounce" />
