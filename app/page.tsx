@@ -41,7 +41,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-lg">
             SHELL AI
           </h1>
-          <p className="text-orange-200 text-sm tracking-[0.3em] uppercase mt-2">Ethical Sentinel System</p>
+          <p className="text-orange-200 text-sm tracking-[0.3em] uppercase mt-2">Go with Flow</p>
         </div>
 
         {/* Center: The Shell & Intro */}
@@ -81,8 +81,7 @@ export default function Home() {
              <span>•</span>
              <span>Global Search</span>
              <span>•</span>
-             <span>Nandhu Edition</span>
-          </div>
+             </div>
         </div>
 
       </div>
