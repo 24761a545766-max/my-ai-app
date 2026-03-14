@@ -47,7 +47,7 @@ export default function Home() {
         {/* Center: The Shell & Intro */}
         <div className="flex flex-col items-center gap-6">
           <div className="relative group">
-            <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full animate-pulse" />
+            <div className="absolute inset-0 bg-skyblue-500/20 blur-3xl rounded-full animate-pulse" />
             <img src="/shell.png" alt="AI Shell" className="relative w-48 md:w-[320px] drop-shadow-2xl transition-all duration-700 group-hover:scale-105" />
           </div>
           <p className="text-white text-lg md:text-xl italic font-light max-w-lg text-center h-8">
