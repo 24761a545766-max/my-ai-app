@@ -9,7 +9,7 @@ const numpyData = [
       <>
         <p className="mb-4"><strong>ndim</strong> is an attribute that determines the number of dimensions or axes.</p>
         <pre className="bg-slate-900 text-green-400 p-4 rounded-lg">
-{`a = np.array([[5,10,15],[20,25,20]])
+{`a = np.array([[5,10,15],[20,25,21]])
 print('Dimensions:', a.ndim)
 # Output: 2`}
         </pre>
