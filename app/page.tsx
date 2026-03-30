@@ -1,97 +1,102 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-export default function Home() {
-  const [query, setQuery] = useState("");
-  const [introText, setIntroText] = useState("");
-  const fullGreeting = "Listening to the ocean's whispers... I am SHELL.";
+const numpyData = [
+  {
+    id: "dimensions",
+    title: "a. Dimensions of NumPy array",
+    content: (
+      <>
+        <p className="mb-4"><strong>ndim</strong> is an attribute that determines the number of dimensions or axes.</p>
+        <pre className="bg-slate-900 text-green-400 p-4 rounded-lg">
+{`a = np.array([[5,10,15],[20,25,20]])
+print('Dimensions:', a.ndim)
+# Output: 2`}
+        </pre>
+      </>
+    )
+  },
+  {
+    id: "shape",
+    title: "b. Shape of NumPy array",
+    content: (
+      <>
+        <p className="mb-4">Shows how many elements are there along each dimension (Rows, Columns).</p>
+        <pre className="bg-slate-900 text-green-400 p-4 rounded-lg">
+{`a = np.array([[1,2,3],[4,5,6]])
+print(a.shape) # (2, 3)
+print('Rows =', a.shape[0])`}
+        </pre>
+      </>
+    )
+  },
+  {
+    id: "reshaping",
+    title: "d. Reshaping & -1 Logic",
+    content: (
+      <>
+        <p className="mb-4">Use <code>-1</code> to let NumPy automatically calculate the shape of an axis.</p>
+        <pre className="bg-slate-900 text-green-400 p-4 rounded-lg">
+{`a = np.array([3,6,9,12,18,24])
+print(np.reshape(a, (3, -1))) # 3 rows, Auto-cols`}
+        </pre>
+      </>
+    )
+  },
+  {
+    id: "flatten",
+    title: "e. Flatten vs Ravel",
+    content: (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 border border-blue-200 rounded">
+            <h4 className="font-bold text-blue-600">flatten()</h4>
+            <p className="text-sm">Deep Copy: Changes do NOT affect the original array.</p>
+          </div>
+          <div className="p-4 border border-orange-200 rounded">
+            <h4 className="font-bold text-orange-600">ravel()</h4>
+            <p className="text-sm">Shallow Copy: Changes ARE reflected in the original.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+];
 
-  useEffect(() => {
-    let i = 0;
-    const timer = setInterval(() => {
-      setIntroText(fullGreeting.slice(0, i));
-      i++;
-      if (i > fullGreeting.length) clearInterval(timer);
-    }, 50);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Searching the tides for: ${query}`);
-    // Here is where you will later connect to your Python Backend
-  };
+export default function NumPyDocs() {
+  const [activeTab, setActiveTab] = useState(numpyData[0].id);
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden font-sans">
-      
-      {/* 🌊 Background Video Layer */}
-      <div className="absolute inset-0 z-0">
-        <video autoPlay loop muted playsInline className="absolute min-w-full min-h-full object-cover">
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-beach-with-waves-at-sunset-40250-large.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-      </div>
-
-      {/* 🐚 UI Layer */}
-      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen py-12 px-6">
-        
-        {/* Header Area */}
-        <div className="text-center animate-fadeIn">
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-lg">
-            SHELL AI
-          </h1>
-          <p className="text-orange-200 text-sm tracking-[0.3em] uppercase mt-2">Go with Flow</p>
-        </div>
-
-        {/* Center: The Shell & Intro */}
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-skyblue-500/20 blur-3xl rounded-full animate-pulse" />
-            <img src="/shell.png" alt="AI Shell" className="relative w-48 md:w-[320px] drop-shadow-2xl transition-all duration-700 group-hover:scale-105" />
-          </div>
-          <p className="text-white text-lg md:text-xl italic font-light max-w-lg text-center h-8">
-            {introText}
-          </p>
-        </div>
-
-        {/* Bottom: Search Engine Bar */}
-        <div className="w-full max-w-2xl animate-slideUp">
-          <form onSubmit={handleSearch} className="relative group">
-            <center>
-            <input 
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask the tought you have..."
-              className="w-full bg-white/10 backdrop-blur-2xl border border-white/30 rounded-full py-5 px-8 pr-16 text-white placeholder-white/60 outline-none ring-2 ring-transparent focus:ring-orange-400/50 transition-all duration-300 shadow-2xl text-lg"
-            />
-            </center>
-            <button 
-              type="submit"
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-400 text-white p-3 rounded-full transition-colors shadow-lg"
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-800">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-slate-200 p-6">
+        <h1 className="text-2xl font-bold text-blue-600 mb-8">NumPy Guide</h1>
+        <nav className="space-y-2">
+          {numpyData.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
+                activeTab === item.id ? 'bg-blue-600 text-white' : 'hover:bg-slate-100'
+              }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              {item.title.split('.')[0]}. {item.id.charAt(0).toUpperCase() + item.id.slice(1)}
             </button>
-          </form>
-          <div className="flex justify-center gap-4 mt-4 text-xs text-white/40 uppercase tracking-widest">
-             <span>Secure Link</span>
-             <span>•</span>
-             <span>Global Search</span>
-             <span>•</span>
-             </div>
-        </div>
+          ))}
+        </nav>
+      </aside>
 
-      </div>
-
-      <style jsx>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-fadeIn { animation: fadeIn 1.5s ease-out; }
-        .animate-slideUp { animation: slideUp 1s ease-out; }
-      `}</style>
-    </main>
+      {/* Main Content */}
+      <main className="flex-1 p-10 max-w-4xl">
+        {numpyData.map((item) => (
+          <section key={item.id} className={activeTab === item.id ? 'block' : 'hidden'}>
+            <h2 className="text-3xl font-extrabold mb-6 border-b pb-2">{item.title}</h2>
+            <div className="prose prose-slate lg:prose-xl">
+              {item.content}
+            </div>
+          </main>
+        ))}
+      </main>
+    </div>
   );
 }
