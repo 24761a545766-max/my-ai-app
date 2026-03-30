@@ -24,7 +24,7 @@ print('Dimensions:', a.ndim)
         <p className="mb-4">Shows how many elements are there along each dimension (Rows, Columns).</p>
         <pre className="bg-slate-900 text-green-400 p-4 rounded-lg">
 {`a = np.array([[1,2,3],[4,5,6]])
-print(a.shape) # (2, 3)
+print(a.shape) # (2, 4)
 print('Rows =', a.shape[0])`}
         </pre>
       </>
