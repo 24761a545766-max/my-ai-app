@@ -2,85 +2,70 @@
 import { useState, useEffect } from 'react';
 
 const labData = [
-  // Week 10: Web Scraping Logic [cite: 547-618]
-  {
-    week: "Week 10",
-    title: "Web Scraping with Python",
-    description: "Automatically extracting data from websites using Requests and Beautiful Soup[cite: 549, 552].",
-    methods: [
-      { name: "Title Extraction", detail: "Using soup.title.text to get the webpage name[cite: 566]." },
-      { name: "Subheadings", detail: "Finding all <h3> tags to identify page sections[cite: 583]." },
-      { name: "Table Scraping", detail: "Parsing <tr> and <td> tags to create a Pandas DataFrame[cite: 628, 634]." },
-      { name: "Multi-page", detail: "Using loops to scrape quotes across multiple URLs[cite: 667]." }
-    ],
-    code: `import requests\nfrom bs4 import BeautifulSoup\n\nurl = "https://lbrce.ac.in/ai/index.php"\nresponse = requests.get(url)\nif response.status_code == 200:\n    soup = BeautifulSoup(response.text, "lxml")\n    # Extracting subheadings\n    headlines = soup.find_all("h3")\n    for idx, h in enumerate(headlines[:3], 1):\n        print(f"{idx}. {h.text.strip()}")`
-  },
-  // Week 11: Data Preprocessing [cite: 726-843]
-  {
-    week: "Week 11",
-    title: "Data Preprocessing",
-    description: "Transforming raw data into a clean format for machine learning using Scikit-Learn[cite: 732, 733].",
-    methods: [
-      { name: "Handling Nulls", detail: "Filling missing numerical values with Mean and categorical with Mode[cite: 757, 761]." },
-      { name: "Feature Scaling", detail: "MinMaxScaler scales features between 0 and 1[cite: 795, 796]." },
-      { name: "Standardization", detail: "Z-score normalization rescales features to have mean 0 and std dev 1[cite: 808, 810]." },
-      { name: "Encoding", detail: "Label Encoding for binary and One-Hot for multi-category features[cite: 817, 828]." }
-    ],
-    code: `from sklearn.preprocessing import MinMaxScaler, StandardScaler\n# Min-Max Scaling\nscaler = MinMaxScaler()\ndf[numerical_cols] = scaler.fit_transform(df[numerical_cols])\n\n# Standardization\nstandardizer = StandardScaler()\ndf[numerical_cols] = standardizer.fit_transform(df[numerical_cols])`
-  },
-  // Week 12: Matplotlib Visualizations [cite: 1-469]
   {
     week: "Week 12",
     title: "Matplotlib Visualizations",
-    description: "Creating static, animated, and interactive 2D visualizations on top of NumPy[cite: 9, 10].",
-    methods: [
-      { name: "Bar & Pie Charts", detail: "Bar charts compare categories; Pie charts show whole proportions[cite: 12, 86]." },
-      { name: "Box Plots", detail: "Simple graph displaying min, max, median, and quartiles to spot outliers[cite: 157, 158]." },
-      { name: "Histogram", detail: "Shows data distribution by grouping values into frequency bins[cite: 214, 215]." },
-      { name: "Line & Scatter", detail: "Line charts show X-Y relationships; Scatter plots observe correlation[cite: 260, 292]." },
-      { name: "Heat Maps", detail: "Graphical data representation where values are shown as colors." },
-      { name: "Subplots", detail: "Method to add multiple plots to a grid position in one figure." }
-    ],
-    code: `# Create 2x2 grid of subplots combining four chart types [cite: 368]
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-
-# 1. Line Chart (top-left) [cite: 385]
-axes[0, 0].plot(years_int, total_immigrants, marker='o', color='blue')
-
-# 2. Scatter Plot (top-right) [cite: 391]
-axes[0, 1].scatter(years_int, total_immigrants, color='green')
-
-# 3. Histogram (bottom-left) [cite: 397]
-axes[1, 0].hist(immigrants_2013, bins=20, color='orange')
-
-# 4. Pie Chart (bottom-right) [cite: 403]
-axes[1, 1].pie(top5_2013['2013'], labels=top5_2013['Country'], autopct='%1.1f%%')
-
-plt.tight_layout()\nplt.show()`
-  },
-  // Week 13: NLTK Processing [cite: 470-546]
-  {
-    week: "Week 13",
-    title: "NLTK: Text Processing",
-    description: "Natural Language Toolkit for processing human language data[cite: 472].",
-    methods: [
-      { name: "Tokenization", detail: "Dividing continuous text into individual sentences or tokens[cite: 492, 501]." },
-      { name: "Stopword Removal", detail: "Technique filtering out semantically minimal words like 'the' or 'is'[cite: 509]." },
-      { name: "Stemming", detail: "Reducing derived words to their base root form (e.g., 'playing' to 'play')[cite: 518]." }
-    ],
-    code: `from nltk.tokenize import word_tokenize\nfrom nltk.stem import PorterStemmer\n\nps = PorterStemmer()\nwords = ["playing", "played", "plays"]\nstemmed = [ps.stem(w) for w in words]\nprint(stemmed) # Output: ['play', 'play', 'play']`
+    description: "Perform various visualizations using matplotlib to analyze Canadian immigration data[cite: 2].",
+    charts: [
+      {
+        id: "bar",
+        name: "a. Bar Graph",
+        detail: "Bar chart displays categorical data using rectangular bars whose lengths are proportional to the values they represent[cite: 12]. It can be plotted vertically or horizontally to compare categories[cite: 13].",
+        code: `import pandas as pd\nimport matplotlib.pyplot as plt\n\n# Select India's data from dataset\ndf_india = df_canada.loc['India', years]\n\nplt.figure(figsize=(12, 6))\ndf_india.plot(kind='bar', color='skyblue', edgecolor='black')\nplt.title("India Immigrants to Canada (1980–2014)")\nplt.show()\n\n# Note: kind='barh' represents bars horizontally[cite: 55].`
+      },
+      {
+        id: "pie",
+        name: "b. Pie Chart",
+        detail: "A circular chart used to show data as proportions or percentages[cite: 86]. Each slice (wedge) represents a part of the whole[cite: 87].",
+        code: `continent_totals = df_continent.sum(axis=1)\n\nplt.figure(figsize=(10, 6))\nplt.pie(continent_totals, labels=continent_totals.index, autopct='%1.1f%%', startangle=140)\n\n# Explode a slice (e.g., Africa)\nexplode = [0.1 if c == 'Africa' else 0 for c in continent_totals.index]\nplt.pie(continent_totals, explode=explode, autopct='%1.1f%%') [cite: 133, 139]`
+      },
+      {
+        id: "box",
+        name: "c. Box Plot",
+        detail: "Shows how data is spread out, displaying the minimum, maximum, median, and quartiles[cite: 157, 158]. It also helps spot outliers easily[cite: 158].",
+        code: `df_japan = df_canada.loc[df_canada['Country'] == 'Japan', years].squeeze()\n\nplt.boxplot(df_japan.values, vert=True, patch_artist=True, \n            boxprops=dict(facecolor='lightblue', color='blue'),\n            medianprops=dict(color='red', linewidth=2)) [cite: 167, 171]`
+      },
+      {
+        id: "hist",
+        name: "d. Histogram",
+        detail: "Shows the distribution of data by grouping values into bins[cite: 214]. The X-axis shows bins and Y-axis shows frequencies[cite: 215].",
+        code: `import numpy as np\ncount, bin_edges = np.histogram(df_canada['2013'])\n\ndf_canada['2013'].plot(kind='hist', bins=bin_edges, rwidth=0.8, color='skyblue') [cite: 223, 225]`
+      },
+      {
+        id: "line",
+        name: "e. Line Chart",
+        detail: "Used to represent a relationship between two data points X and Y on different axes[cite: 260, 261].",
+        code: `haiti_data = df_canada.loc[df_canada['Country'] == 'Haiti', years].squeeze()\nhaiti_data.plot(kind='line', marker='o', color='blue') [cite: 266, 274]`
+      },
+      {
+        id: "scatter",
+        name: "f. Scatter Plot",
+        detail: "Used to observe the correlation between two variables[cite: 292].",
+        code: `total_immigrants = df_canada[years].sum(axis=0)\nyears_int = list(map(int, years))\n\nplt.scatter(years_int, total_immigrants, color='blue', s=80) [cite: 297, 301]`
+      },
+      {
+        id: "heatmap",
+        name: "Heat Map",
+        detail: "A graphical representation where values are shown as colors to visualize patterns or intensity[cite: 332, 333].",
+        code: `import seaborn as sns\ndf_first10 = df_canada.head(10).set_index('Country')[years]\n\nsns.heatmap(df_first10, cmap="YlGnBu", annot=True, fmt=".0f") [cite: 339, 342]`
+      },
+      {
+        id: "subplots",
+        name: "Subplots",
+        detail: "The subplot() method adds a plot to a grid position (rows, columns, index) within the current figure[cite: 366, 367].",
+        code: `fig, axes = plt.subplots(2, 2, figsize=(14, 10))\n\naxes[0, 0].plot(years_int, total_immigrants) # Line\naxes[0, 1].scatter(years_int, total_immigrants) # Scatter\naxes[1, 0].hist(immigrants_2013, bins=20) # Histogram\naxes[1, 1].pie(top5_2013['2013'], labels=top5_2013['Country']) # Pie [cite: 384, 403]`
+      }
+    ]
   }
 ];
 
 export default function IDSLabExplorer() {
-  const [activeTab, setActiveTab] = useState(labData[2]); 
+  const [activeChart, setActiveChart] = useState(labData[0].charts[0]);
   const [introText, setIntroText] = useState("");
 
   useEffect(() => {
     let i = 0;
-    const fullIntro = "Nandhu's IDS Lab Portfolio Loading...";
+    const fullIntro = "Nandhu's Visualization Lab Loading...";
     const timer = setInterval(() => {
       setIntroText(fullIntro.slice(0, i));
       i++;
@@ -90,62 +75,60 @@ export default function IDSLabExplorer() {
   }, []);
 
   return (
-    <main className="flex min-h-screen bg-[#050505] text-gray-200 font-sans">
-      {/* Navigation */}
-      <nav className="w-80 bg-[#0f0f0f] border-r border-gray-800 p-8 flex flex-col">
-        <div className="mb-12">
-          <h1 className="text-3xl font-black text-white tracking-tighter uppercase">IDS Lab</h1>
+    <main className="flex min-h-screen bg-[#0a0a0a] text-gray-200 font-sans">
+      {/* Sidebar Navigation */}
+      <nav className="w-80 bg-[#111] border-r border-gray-800 p-8 flex flex-col sticky top-0 h-screen">
+        <div className="mb-10">
+          <h1 className="text-3xl font-black text-white tracking-tighter uppercase">Week 12</h1>
           <p className="text-blue-500 text-[10px] font-mono mt-1 tracking-widest">{introText}</p>
         </div>
         
-        <div className="space-y-3 flex-1">
-          {labData.map((lab) => (
+        <div className="space-y-2 flex-1 overflow-y-auto">
+          {labData[0].charts.map((chart) => (
             <button
-              key={lab.week}
-              onClick={() => setActiveTab(lab)}
-              className={`w-full text-left p-4 rounded-2xl transition-all duration-300 border ${
-                activeTab.week === lab.week 
-                ? 'bg-blue-600 border-blue-400 text-white shadow-xl shadow-blue-900/20' 
+              key={chart.id}
+              onClick={() => setActiveChart(chart)}
+              className={`w-full text-left p-3 rounded-xl transition-all duration-300 border ${
+                activeChart.id === chart.id 
+                ? 'bg-blue-600 border-blue-400 text-white shadow-lg' 
                 : 'bg-transparent border-gray-800 text-gray-500 hover:border-gray-600'
               }`}
             >
-              <span className="text-[10px] uppercase tracking-widest block opacity-70 mb-1">{lab.week}</span>
-              <span className="font-bold">{lab.title}</span>
+              <span className="font-bold text-sm">{chart.name}</span>
             </button>
           ))}
         </div>
       </nav>
 
-      {/* Content */}
-      <section className="flex-1 p-16 overflow-y-auto bg-[radial-gradient(circle_at_top_right,#111,transparent)]">
-        <div className="max-w-5xl mx-auto">
-          <header className="mb-12">
-            <h2 className="text-5xl font-extrabold text-white mb-6 tracking-tight">{activeTab.title}</h2>
-            <p className="text-lg text-gray-400 leading-relaxed italic border-l-4 border-blue-600 pl-6">
-              {activeTab.description}
+      {/* Main Content Area */}
+      <section className="flex-1 p-16 bg-[radial-gradient(circle_at_top_right,#111,transparent)]">
+        <div className="max-w-4xl mx-auto">
+          <header className="mb-10">
+            <h2 className="text-5xl font-extrabold text-white mb-4 tracking-tight">{activeChart.name}</h2>
+            <p className="text-lg text-gray-400 leading-relaxed pl-4 border-l-4 border-blue-600">
+              {activeChart.detail}
             </p>
           </header>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-            {activeTab.methods.map((m, i) => (
-              <div key={i} className="p-5 bg-[#111] rounded-2xl border border-gray-800 hover:border-blue-500/50 transition-all group">
-                <h4 className="text-blue-400 font-bold text-sm mb-2 group-hover:text-blue-300">{m.name}</h4>
-                <p className="text-gray-500 text-xs leading-relaxed">{m.detail}</p>
-              </div>
-            ))}
+          {/* Visual Diagram Placeholder */}
+          <div className="mb-10 rounded-3xl overflow-hidden border border-gray-800 bg-[#161616] p-4">
+             <div className="flex items-center justify-center h-48 border-2 border-dashed border-gray-800 rounded-2xl text-gray-600 text-sm italic">
+                 || activeChart.name}]
+             </div>
           </div>
 
+          {/* Code Playground */}
           <div className="rounded-3xl overflow-hidden border border-gray-800 shadow-2xl">
             <div className="bg-[#1a1a1a] px-6 py-3 flex justify-between items-center border-b border-gray-800">
-              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Lab_Source_Code.py</span>
+              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Matplotlib_Lab.py</span>
               <div className="flex gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-red-500/50" />
                 <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
                 <div className="w-2 h-2 rounded-full bg-green-500/50" />
               </div>
             </div>
-            <pre className="bg-[#000] p-8 font-mono text-xs leading-relaxed text-blue-300 overflow-x-auto">
-              <code>{activeTab.code}</code>
+            <pre className="bg-[#000] p-8 font-mono text-xs leading-relaxed text-blue-300 overflow-x-auto whitespace-pre-wrap">
+              <code>{activeChart.code}</code>
             </pre>
           </div>
         </div>
