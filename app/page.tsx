@@ -23,7 +23,7 @@ const labData = [
         id: "box",
         name: "c. Box Plot",
         detail: "Shows how data is spread out, displaying the minimum, maximum, median, and quartiles[cite: 157, 158]. It also helps spot outliers easily[cite: 158].",
-        code: `df_japan = df_canada.loc[df_canada['Country'] == 'Japan', years].squeeze()\n\nplt.boxplot(df_japan.values, vert=True, patch_artist=True, \n            boxprops=dict(facecolor='lightblue', color='blue'),\n            medianprops=dict(color='red', linewidth=2)) [cite: 167, 171]`
+        code: `df_japan = df_canada.loc[df_canada['Country'] == 'Jpan', years].squeeze()\n\nplt.boxplot(df_japan.values, vert=True, patch_artist=True, \n            boxprops=dict(facecolor='lightblue', color='blue'),\n            medianprops=dict(color='red', linewidth=2)) [cite: 167, 171]`
       },
       {
         id: "hist",
