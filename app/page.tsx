@@ -19,7 +19,6 @@ export default function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     alert(`Searching the tides for: ${query}`);
-    // Here is where you will later connect to your Python Backend
   };
 
   return (
@@ -79,7 +78,7 @@ export default function Home() {
              <span>•</span>
              <span>Global Search</span>
              <span>•</span>
-             <span>Nandhu Edition</span>
+             <span>Charan Edition</span>
           </div>
         </div>
 
