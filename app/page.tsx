@@ -29,7 +29,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState(labData[0]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const fullGreeting = "Welcome, Charan. Connection established with the 3D neural fluid mesh. Accessing internal lab records...";
+  const fullGreeting = "Welcome,Choosav ga inka DENGEY";
 
   // Typewriter effect
   useEffect(() => {
