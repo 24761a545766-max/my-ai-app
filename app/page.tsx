@@ -1,46 +1,36 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 
-const labData = [
-  {
-    id: "bar",
-    name: "Bar Graph",
-    detail: "Displays categorical data using rectangular bars whose lengths are proportional to the values[cite: 12]. Can be vertical or horizontal (barh)[cite: 13, 55].",
-    code: `import pandas as pd\nimport matplotlib.pyplot as plt\n\ndf_india = df_canada.loc['India', years]\nplt.figure(figsize=(12, 6))\ndf_india.plot(kind='bar', color='skyblue', edgecolor='black')\nplt.title("India Immigrants to Canada (1980–2014)")\nplt.show()`
-  },
-  {
-    id: "pie",
-    name: "Pie Chart",
-    detail: "A circular chart used to show data as proportions or percentages[cite: 86]. Each slice represents a part of the whole[cite: 87].",
-    code: `plt.pie(continent_totals, labels=continent_totals.index, autopct='%1.1f%%', startangle=140)\n# Explode Africa slice\nexplode = [0.1 if c == 'Africa' else 0 for c in continent_totals.index]\nplt.pie(continent_totals, explode=explode, autopct='%1.1f%%')`
-  },
-  {
-    id: "subplots",
-    name: "Subplots",
-    detail: "The subplot() method adds a plot to a grid position (rows, columns, index) within the current figure[cite: 366, 367].",
-    code: `fig, axes = plt.subplots(2, 2, figsize=(14, 10))\naxes[0, 0].plot(years_int, total_immigrants) # Line\naxes[0, 1].scatter(years_int, total_immigrants) # Scatter\naxes[1, 0].hist(immigrants_2013, bins=20) # Histogram\naxes[1, 1].pie(top5_2013['2013'], labels=top5_2013['Country']) # Pie`
-  }
-];
+interface Message {
+  sender: 'user' | 'shell';
+  text: string;
+  timestamp: string;
+}
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [introText, setIntroText] = useState("");
-  const [showLab, setShowLab] = useState(false);
-  const [activeTab, setActiveTab] = useState(labData[0]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const fullGreeting = "Welcome,Choosav ga inka DENGEY";
+  const fullGreeting = "Welcome, Charan. Secure terminal established. The deep marine network is online. How shall we query the tides today?";
 
-  // Typewriter effect
+  // Typewriter banner effect
   useEffect(() => {
     let i = 0;
     const timer = setInterval(() => {
       setIntroText(fullGreeting.slice(0, i));
       i++;
       if (i > fullGreeting.length) clearInterval(timer);
-    }, 40);
+    }, 30);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto-scroll chat window to the absolute newest message payload
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // 🌊 Pure JS 3D Live Wave Animation Matrix Engine
   useEffect(() => {
@@ -53,7 +43,6 @@ export default function Home() {
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // Particle matrix configuration
     const SEPARATION = 45;
     const AMOUNTX = 60;
     const AMOUNTY = 40;
@@ -66,52 +55,43 @@ export default function Home() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Render loop
     const render = () => {
       ctx.clearRect(0, 0, width, height);
       
-      // Deep ocean gradient background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-      bgGrad.addColorStop(0, '#000814');
-      bgGrad.addColorStop(0.5, '#001d3d');
-      bgGrad.addColorStop(1, '#000814');
+      bgGrad.addColorStop(0, '#000511');
+      bgGrad.addColorStop(0.5, '#001430');
+      bgGrad.addColorStop(1, '#000511');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Perspective projection configurations
       const fov = 350; 
       const cx = width / 2;
-      const cy = height * 0.65; // Push the horizon lower down the screen
+      const cy = height * 0.75; // Push matrix horizon lower for clean text space
 
       for (let ix = 0; ix < AMOUNTX; ix++) {
         for (let iy = 0; iy < AMOUNTY; iy++) {
-          // Calculate standard 3D Grid Positions
           const x3d = (ix - AMOUNTX / 2) * SEPARATION;
-          const z3d = (iy - AMOUNTY / 2) * SEPARATION + 200; // Depth coordinate
-          
-          // 3D Sine Wave Equation modifying the Y coordinate (Height) over time
-          const y3d = (Math.sin((ix + count) * 0.2) * 35) + (Math.sin((iy + count) * 0.3) * 35);
+          const z3d = (iy - AMOUNTY / 2) * SEPARATION + 200; 
+          const y3d = (Math.sin((ix + count) * 0.2) * 30) + (Math.sin((iy + count) * 0.3) * 30);
 
-          // 3D to 2D Perspective Projection conversion matrix
           const scale = fov / (fov + z3d);
           const x2d = cx + x3d * scale;
           const y2d = cy + y3d * scale;
 
           if (x2d >= 0 && x2d <= width && y2d >= 0 && y2d <= height) {
-            // Particle brightness depends directly on its proximity to the viewer
-            const alpha = Math.max(0.1, scale * 1.1);
-            const size = Math.max(0.5, scale * 3.5);
+            const alpha = Math.max(0.08, scale * 0.9);
+            const size = Math.max(0.5, scale * 3.0);
 
             ctx.beginPath();
             ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
-            // Bioluminescent aquatic cyan color mapping
-            ctx.fillStyle = `rgba(0, 180, 255, ${alpha})`;
+            ctx.fillStyle = `rgba(0, 150, 255, ${alpha})`;
             ctx.fill();
           }
         }
       }
 
-      count += 0.04; // Controls fluid velocity of waves
+      count += 0.03; 
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -123,90 +103,130 @@ export default function Home() {
     };
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Chat Processing Logic
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Searching the marine net for: ${query}`);
+    if (!query.trim()) return;
+
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // 1. Capture User Input Payload
+    const userMessage: Message = {
+      sender: 'user',
+      text: query,
+      timestamp: timeString
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const userQuery = query.toLowerCase();
+    setQuery("");
+
+    // 2. Generate Automated Core AI Responses (Simulated Shell Brain)
+    setTimeout(() => {
+      let replyText = "Query registered in depths. Matrix data processing ongoing.";
+      
+      if (userQuery.includes("hello") || userQuery.includes("hi")) {
+        replyText = "Greetings, Charan. System status optimal. Standing by for specific core directives.";
+      } else if (userQuery.includes("status") || userQuery.includes("system")) {
+        replyText = "All sentinel node links are stable. Encryption: SSL Layer Active. Core: 3D Mathematical Wave Mesh operational.";
+      } else if (userQuery.includes("clear")) {
+        setMessages([]);
+        return;
+      } else if (userQuery.includes("help")) {
+        replyText = "Available commands: 'status' (check node health), 'clear' (purge current chat array logs).";
+      }
+
+      const shellResponse: Message = {
+        sender: 'shell',
+        text: replyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages(prev => [...prev, shellResponse]);
+    }, 750);
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden font-sans bg-[#000814]">
-      {/* 🔮 Live 3D Render Canvas Layer */}
+    <main className="relative min-h-screen w-full overflow-hidden font-sans bg-[#000511]">
+      {/* 🔮 Live 3D Particle Render Canvas Layer */}
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
-      {/* 🐚 UI Layer */}
-      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen py-10 px-6">
-        {/* Header */}
-        <div className="text-center animate-fadeIn">
-          <h1 className="text-6xl font-black text-white tracking-tighter drop-shadow-[0_10px_25px_rgba(0,180,255,0.4)]">
-            SHELL AI
-          </h1>
-          <button 
-            onClick={() => setShowLab(!showLab)}
-            className="mt-4 px-5 py-1.5 border border-blue-500/30 text-blue-400 text-[10px] uppercase tracking-widest rounded-full hover:bg-blue-600 hover:text-white hover:border-transparent transition-all bg-blue-950/20 backdrop-blur-md font-bold"
-          >
-            {showLab ? "Hide Data Layer" : "Expose Week 12 Data"}
-          </button>
-        </div>
-
-        {/* Content Section */}
-        {!showLab ? (
-          <div className="flex flex-col items-center gap-8 text-center">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse" />
-              <img src="/shell.png" className="relative w-40 md:w-64 drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] transition-transform group-hover:scale-105 duration-700 ease-out" />
-            </div>
-            <p className="text-blue-100 text-lg italic font-light max-w-lg tracking-wide drop-shadow-md min-h-[2rem]">
-              {introText}
-            </p>
+      {/* 🐚 Chat UI Interface Layer */}
+      <div className="relative z-10 flex flex-col justify-between h-screen w-full max-w-4xl mx-auto py-8 px-4 md:px-6">
+        
+        {/* Top Header Interface */}
+        <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl">
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(0,150,255,0.3)]">
+              SHELL AI
+            </h1>
+            <span className="text-[9px] font-mono text-blue-400 tracking-widest uppercase mt-0.5">Ethical Sentinel System</span>
           </div>
-        ) : (
-          <div className="w-full max-w-5xl bg-slate-950/75 backdrop-blur-3xl rounded-[2.5rem] border border-blue-500/20 p-8 flex flex-col md:flex-row gap-8 animate-slideUp shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)]">
-            <nav className="w-full md:w-48 space-y-2">
-              {labData.map(item => (
-                <button 
-                  key={item.id} 
-                  onClick={() => setActiveTab(item)}
-                  className={`w-full text-left p-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${activeTab.id === item.id ? 'bg-blue-600 border-blue-400 text-white shadow-md' : 'text-slate-400 border-transparent hover:bg-white/5 hover:text-white'}`}
+          <div className="flex items-center gap-2 bg-blue-950/40 border border-blue-500/30 px-3 py-1 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-mono text-gray-300 uppercase tracking-wider font-bold">Charan Edition</span>
+          </div>
+        </header>
+
+        {/* Center Chat Log Stream Frame */}
+        <section className="flex-1 my-6 overflow-y-auto pr-2 space-y-4 rounded-2xl bg-black/10 backdrop-blur-sm p-4 custom-scrollbar">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center opacity-80 transition-all duration-500 mt-20">
+              <img src="/shell.png" alt="AI Shell" className="w-32 md:w-44 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] mb-6 animate-pulse" />
+              <p className="text-blue-200 text-sm italic font-light max-w-md px-6 leading-relaxed">
+                {introText}
+              </p>
+            </div>
+          ) : (
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex flex-col max-w-[80%] ${
+                  msg.sender === 'user' ? 'ml-auto items-end' : 'mr-auto items-start'
+                } animate-slideUp`}
+              >
+                <div
+                  className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-lg font-medium border ${
+                    msg.sender === 'user'
+                      ? 'bg-blue-600 border-blue-400 text-white rounded-br-none shadow-blue-900/10'
+                      : 'bg-slate-900/80 border-white/10 text-slate-100 rounded-bl-none'
+                  }`}
                 >
-                  {item.name}
-                </button>
-              ))}
-            </nav>
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold text-white mb-2">{activeTab.name}</h3>
-              <p className="text-sm text-slate-300 mb-6 border-l-2 border-blue-500 pl-4 leading-relaxed">{activeTab.detail}</p>
-              <div className="rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
-                <pre className="bg-black/90 p-6 text-cyan-400 font-mono text-xs overflow-x-auto whitespace-pre">
-                  <code>{activeTab.code}</code>
-                </pre>
+                  {msg.text}
+                </div>
+                <span className="text-[9px] font-mono text-slate-500 mt-1 px-1">
+                  {msg.timestamp}
+                </span>
               </div>
-            </div>
-          </div>
-        )}
+            ))
+          )}
+          <div ref={chatEndRef} />
+        </section>
 
-        {/* Search Bar */}
-        <div className="w-full max-w-2xl">
-          <form onSubmit={handleSearch} className="relative group">
+        {/* Input Interactive Command Dock */}
+        <footer className="w-full">
+          <form onSubmit={handleSendMessage} className="relative group">
             <input 
               type="text" 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Query the database..." 
-              className="w-full bg-slate-900/30 border border-white/10 rounded-full py-4 px-8 pr-16 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-transparent transition-all shadow-xl text-lg font-medium"
+              placeholder="Inject statement into matrix stream..." 
+              className="w-full bg-slate-950/60 backdrop-blur-2xl border border-white/10 rounded-full py-4 px-6 pr-16 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-transparent transition-all shadow-2xl text-base font-medium"
             />
             <button 
               type="submit"
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full transition-all shadow-md"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full transition-all shadow-md active:scale-95"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
           </form>
-          <div className="flex justify-center gap-4 mt-4 text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">
-             <span>Secure SSL</span> • <span>Charan Edition</span> • <span>3D Fluid Grid</span>
+          <div className="flex justify-center gap-4 mt-3 text-[9px] text-slate-600 uppercase tracking-widest font-mono font-bold">
+             <span>Secure Shell Core</span> • <span>State: Listening</span> • <span>No Dependency Build</span>
           </div>
-        </div>
+        </footer>
+
       </div>
     </main>
   );
