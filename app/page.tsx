@@ -14,7 +14,7 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const fullGreeting = "Welcome, Charan. Secure terminal established. The deep marine network is online. How shall we query the tides today?";
+  const fullGreeting = "Welcome, Choosav ga inka DENGEY Em ledhu";
 
   // Typewriter banner effect
   useEffect(() => {
