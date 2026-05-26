@@ -172,8 +172,7 @@ export default function Home() {
         <section className="flex-1 my-6 overflow-y-auto pr-2 space-y-4 rounded-2xl bg-black/10 backdrop-blur-sm p-4 custom-scrollbar">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-80 transition-all duration-500 mt-20">
-              <img src="/shell.png" alt="AI Shell" className="w-32 md:w-44 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] mb-6 animate-pulse" />
-              <p className="text-blue-200 text-sm italic font-light max-w-md px-6 leading-relaxed">
+              <p className="text-blue-200 text-lg italic font-light max-w-md px-6 leading-relaxed">
                 {introText}
               </p>
             </div>
@@ -217,7 +216,7 @@ export default function Home() {
               type="submit"
               className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full transition-all shadow-md active:scale-95"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/xl" className="h-5 w-5" fill="none" viewBox="0 0 24 24 " stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
