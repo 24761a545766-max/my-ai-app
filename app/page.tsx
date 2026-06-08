@@ -12,7 +12,7 @@ interface SurveySubmission {
 export default function Home() {
   const [introText, setIntroText] = useState("");
   const [submissions, setSubmissions] = useState<SurveySubmission[]>([
-    { id: 101, location: "Kondapalli ", category: "Public Infrastructure", satisfaction: 4, timestamp: "06:42 PM" },
+    { id: 101, location: "Kondapalli Center", category: "Public Infrastructure", satisfaction: 4, timestamp: "06:42 PM" },
     { id: 102, location: "LBRCE Suburb", category: "Waste Management", satisfaction: 2, timestamp: "07:15 PM" },
     { id: 103, location: "Gopal Nagar", category: "Water Supply System", satisfaction: 5, timestamp: "07:38 PM" }
   ]);
@@ -21,7 +21,6 @@ export default function Home() {
 
   const fullGreeting = "Welcome, Charan. Secure project node established. Initializing Community Survey Matrix analytics...";
 
-  // Typewriter banner effect
   useEffect(() => {
     let i = 0;
     const timer = setInterval(() => {
@@ -32,7 +31,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🌊 Pure JS 3D Live Wave Animation Matrix Engine (Bioluminescent Ocean)
+  // 🌊 Pure JS 3D Live Wave Animation Matrix Engine
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -122,10 +121,8 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden font-sans bg-[#000511]">
-      {/* Live 3D Mathematical Backdrop */}
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
-      {/* UI Interface Layer */}
       <div className="relative z-10 w-full max-w-6xl mx-auto py-8 px-4 md:px-6 flex flex-col justify-between min-h-screen">
         
         {/* Top Header Panel */}
@@ -163,3 +160,102 @@ export default function Home() {
           {/* Left Column: Data Ingestion Form */}
           <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2">
+              Log Field Observation
+            </h3>
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Location / sector</label>
+                <input 
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="e.g. Kondapalli Ward 4"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white placeholder-slate-600 outline-none focus:ring-1 focus:ring-sky-500"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Project Category</label>
+                <select 
+                  value={formData.category}
+                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer text-slate-200"
+                >
+                  <option value="Public Infrastructure">Public Infrastructure</option>
+                  <option value="Waste Management">Waste Management</option>
+                  <option value="Water Supply System">Water Supply System</option>
+                  <option value="Public Safety & Lighting">Public Safety & Lighting</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Satisfaction Vector (1-5)</label>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="5"
+                  value={formData.satisfaction}
+                  onChange={(e) => setFormData(prev => ({ ...prev, satisfaction: Number(e.target.value) }))}
+                  className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                />
+                <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+                  <span>Critical (1)</span>
+                  <span className="text-sky-400 font-bold">Value: {formData.satisfaction}</span>
+                  <span>Optimal (5)</span>
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs uppercase tracking-widest py-3 rounded-xl transition-all shadow-md active:scale-[0.98]"
+              >
+                Incorporate Record
+              </button>
+            </form>
+          </section>
+
+          {/* Right Columns: Active Matrix Feed Display */}
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl md:col-span-2 flex flex-col h-full max-h-[460px]">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 mb-4">
+              Telemetry Data Stream Feed
+            </h3>
+            
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 overflow-x-hidden">
+              {submissions.map((item) => (
+                <div key={item.id} className="bg-black/30 border border-white/5 rounded-xl p-4 flex items-center justify-between hover:border-sky-500/20 transition-all group">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-mono text-slate-500">ID: #{item.id} • {item.timestamp}</span>
+                    <span className="text-sm font-bold text-white group-hover:text-sky-400 transition-colors">{item.location}</span>
+                    <span className="text-xs text-slate-400">{item.category}</span>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[9px] font-mono text-slate-500 uppercase">Index Rating</span>
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span 
+                          key={i} 
+                          className={`w-1.5 h-3 rounded-sm ${i < item.satisfaction ? 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]' : 'bg-slate-800'}`} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* Bottom Context Footnote Status */}
+        <footer className="w-full text-center py-2 border-t border-white/5">
+          <p className="text-slate-400 text-xs italic tracking-wide max-w-xl mx-auto">
+            {introText || "Awaiting pipeline connection..."}
+          </p>
+          <div className="flex justify-center gap-4 mt-3 text-[9px] text-slate-600 uppercase tracking-widest font-mono font-bold">
+             <span>Data Layer: Active</span> • <span>Charan Edition Build</span> • <span>Project Type: CSP</span>
+          </div>
+        </footer>
+
+      </div>
+    </main>
+  );
+}
