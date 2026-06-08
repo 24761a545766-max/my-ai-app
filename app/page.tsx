@@ -21,7 +21,7 @@ interface ClimateData {
 export default function Home() {
   const [introText, setIntroText] = useState("");
   const [submissions, setSubmissions] = useState<SurveySubmission[]>([
-    { id: 101, location: "Kondapalli Center", category: "Public Infrastructure", satisfaction: 4, timestamp: "06:42 PM" },
+    { id: 101, location: "Kondapalli", category: "Public Infrastructure", satisfaction: 4, timestamp: "06:42 PM" },
     { id: 102, location: "LBRCE Suburb", category: "Waste Management", satisfaction: 2, timestamp: "07:15 PM" },
     { id: 103, location: "Gopal Nagar", category: "Water Supply System", satisfaction: 5, timestamp: "07:38 PM" }
   ]);
