@@ -32,10 +32,8 @@ export default function Home() {
   const mapInstanceRef = useRef<any>(null);
   const markerInstanceRef = useRef<any>(null);
 
-  // Simulation State for emergency tracking arrays
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
-
   const [climate, setClimate] = useState<ClimateData>({
     location: "Kondapalli, AP (Default)",
     temp: "32°C",
@@ -44,135 +42,6 @@ export default function Home() {
     cycloneThreat: "None Active",
     safeZone: "In-Place Shelter Optimal"
   });
-
-  // 🗺️ Load Leaflet Map Assets Dynamically (Prevents SSR Next.js Crash)
-  useEffect(() => {
-    // Add Leaflet CSS to page head
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    document.head.appendChild(link);
-
-    // Add Leaflet JS Script to page
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    script.onload = () => {
-      if (!mapContainerRef.current || mapInstanceRef.current) return;
-
-      // Initialize default map view (Centered at Kondapalli coordinates baseline)
-      const L = (window as any).L;
-      const initialLat = 16.6264;
-      const initialLng = 80.5404;
-
-      const map = L.map(mapContainerRef.current, {
-        zoomControl: false,
-        attributionControl: false
-      }).setView([initialLat, initialLng], 13);
-
-      // Apply sleek dark-mode map skin to match Shell AI theme
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
-      }).addTo(map);
-
-      // Custom glowing blue user pin
-      const pulseIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="background-color: #0ea5e9; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 12px #0ea5e9; animate: pulse 2s infinite;"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7]
-      });
-
-      const marker = L.marker([initialLat, initialLng], { icon: pulseIcon }).addTo(map);
-      marker.bindPopup("<b style='color:#000'>Your Device Node Baseline</b>").openPopup();
-
-      mapInstanceRef.current = map;
-      markerInstanceRef.current = marker;
-
-      // Trigger user tracking instantly once map tools load
-      requestUserLocation();
-    };
-
-    return () => {
-      document.head.removeChild(link);
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  // 📡 Query Browser Geolocation and Update Map Interface
-  const requestUserLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          const L = (window as any).L;
-
-          // 1. Pan Map to True Live Coordinates and lock marker position
-          if (mapInstanceRef.current && markerInstanceRef.current) {
-            mapInstanceRef.current.setView([latitude, longitude], 15);
-            markerInstanceRef.current.setLatLng([latitude, longitude]);
-            markerInstanceRef.current.getPopup().setContent("<b style='color:#000'>Live Node Location Verified</b>").openPopup();
-          }
-
-          // 2. Fetch City Metadata
-          try {
-            const response = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-            );
-            const data = await response.json();
-            const detectCity = data.city || data.locality || "Active Sector";
-            const detectState = data.principalSubdivisionCode ? data.principalSubdivisionCode.split('-')[1] || "" : "";
-
-            setClimate(prev => ({
-              ...prev,
-              location: `${detectCity}${detectState ? ', ' + detectState : ''}`
-            }));
-          } catch (err) {
-            console.error("Geocoding map failed.", err);
-          }
-        },
-        (error) => console.warn("Location permission denied. Running fallback matrix.", error),
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    }
-  };
-
-  // ⏱️ Emergency Countdown Timer Engine
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (emergencyMode) {
-      let totalSeconds = 4 * 3600 + 12 * 60;
-      timer = setInterval(() => {
-        if (totalSeconds <= 0) {
-          clearInterval(timer);
-          return;
-        }
-        totalSeconds--;
-        setCountdown({
-          hours: Math.floor(totalSeconds / 3600),
-          minutes: Math.floor((totalSeconds % 3600) / 60),
-          seconds: totalSeconds % 60
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [emergencyMode]);
-
-  // Typewriter banner string assembly
-  useEffect(() => {
-    let i = 0;
-    const statusText = emergencyMode ? "⚠️ CRITICAL WARNING VECTOR DETECTED." : "System Status: CLEAR.";
-    const fullGreeting = `Secure node linked: ${climate.location}. Climate Telemetry Engine initialized. Current ${statusText}`;
-    setIntroText("");
-    const timer = setInterval(() => {
-      setIntroText(fullGreeting.slice(0, i));
-      i++;
-      if (i > fullGreeting.length) clearInterval(timer);
-    }, 25);
-    return () => clearInterval(timer);
-  }, [climate.location, emergencyMode]);
 
   // 🌊 Pure JS 3D Live Wave Animation Matrix Engine
   useEffect(() => {
@@ -199,7 +68,6 @@ export default function Home() {
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
-      
       const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
       bgGrad.addColorStop(0, emergencyMode ? '#110005' : '#000511');
       bgGrad.addColorStop(0.5, emergencyMode ? '#2a0813' : '#001430');
@@ -226,7 +94,6 @@ export default function Home() {
           if (x2d >= 0 && x2d <= width && y2d >= 0 && y2d <= height) {
             const alpha = Math.max(0.06, scale * 0.8);
             const size = Math.max(0.5, scale * 2.5);
-
             ctx.beginPath();
             ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
             ctx.fillStyle = emergencyMode ? `rgba(244, 63, 94, ${alpha})` : `rgba(14, 165, 233, ${alpha})`;
@@ -234,18 +101,137 @@ export default function Home() {
           }
         }
       }
-
       count += emergencyMode ? 0.06 : 0.025; 
       animationFrameId = requestAnimationFrame(render);
     };
 
     render();
-
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
   }, [emergencyMode]);
+
+  // 🗺️ Robust Map Initialization Engine
+  useEffect(() => {
+    let active = true;
+
+    const initMap = async () => {
+      // 1. Inject Leaflet Styles directly to document head
+      if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement("link");
+        link.id = 'leaflet-css';
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+      }
+
+      // 2. Fetch Leaflet JavaScript Core module
+      const loadScript = () => {
+        return new Promise((resolve) => {
+          if ((window as any).L) return resolve((window as any).L);
+          const script = document.createElement("script");
+          script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+          script.async = true;
+          script.onload = () => resolve((window as any).L);
+          document.body.appendChild(script);
+        });
+      };
+
+      const L: any = await loadScript();
+      if (!active || !mapContainerRef.current || mapInstanceRef.current) return;
+
+      const defaultLat = 16.6264;
+      const defaultLng = 80.5404;
+
+      // 3. Initialize Map Instantiation
+      const map = L.map(mapContainerRef.current, {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([defaultLat, defaultLng], 12);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(map);
+
+      const pulseIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div style="background-color: #0ea5e9; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 12px #0ea5e9;"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+
+      const marker = L.marker([defaultLat, defaultLng], { icon: pulseIcon }).addTo(map);
+      marker.bindPopup("<b style='color:#000'>System Coordinate Active</b>").openPopup();
+
+      mapInstanceRef.current = map;
+      markerInstanceRef.current = marker;
+
+      // 4. Fire Geolocation coordinates track request
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            if (!active) return;
+            
+            map.setView([latitude, longitude], 14);
+            marker.setLatLng([latitude, longitude]);
+            marker.getPopup().setContent("<b style='color:#000'>Live GPS Position Locked</b>").openPopup();
+
+            try {
+              const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+              const data = await res.json();
+              const city = data.city || data.locality || "Active Sector";
+              const state = data.principalSubdivisionCode ? data.principalSubdivisionCode.split('-')[1] || "" : "";
+              setClimate(prev => ({ ...prev, location: `${city}${state ? ', ' + state : ''}` }));
+            } catch (e) {
+              console.error(e);
+            }
+          },
+          (err) => console.warn("GPS access postponed.", err),
+          { enableHighAccuracy: true, timeout: 7000 }
+        );
+      }
+    };
+
+    initMap();
+    return () => { active = false; };
+  }, []);
+
+  // ⏱️ Emergency Countdown Timer Engine
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (emergencyMode) {
+      let totalSeconds = 4 * 3600 + 12 * 60;
+      timer = setInterval(() => {
+        if (totalSeconds <= 0) {
+          clearInterval(timer);
+          return;
+        }
+        totalSeconds--;
+        setCountdown({
+          hours: Math.floor(totalSeconds / 3600),
+          minutes: Math.floor((totalSeconds % 3600) / 60),
+          seconds: totalSeconds % 60
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [emergencyMode]);
+
+  // Typewriter text banner effect
+  useEffect(() => {
+    let i = 0;
+    const statusText = emergencyMode ? "⚠️ CRITICAL WARNING VECTOR DETECTED." : "System Status: CLEAR.";
+    const fullGreeting = `Secure node linked: ${climate.location}. Climate Telemetry Engine initialized. Current ${statusText}`;
+    setIntroText("");
+    const timer = setInterval(() => {
+      setIntroText(fullGreeting.slice(0, i));
+      i++;
+      if (i > fullGreeting.length) clearInterval(timer);
+    }, 25);
+    return () => clearInterval(timer);
+  }, [climate.location, emergencyMode]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,18 +245,17 @@ export default function Home() {
       satisfaction: Number(formData.satisfaction),
       timestamp: timeString
     };
-
     setSubmissions(prev => [newSubmission, ...prev]);
     setFormData(prev => ({ ...prev, location: "" }));
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden font-sans bg-[#000511]">
+    <main className="relative min-h-screen w-full overflow-x-hidden font-sans bg-[#000511]">
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto py-8 px-4 md:px-6 flex flex-col justify-between min-h-screen">
         
-        {/* Top Header Panel */}
+        {/* Header Panel */}
         <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl mb-6">
           <div className="flex flex-col">
             <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(14,165,233,0.4)]">
@@ -282,9 +267,7 @@ export default function Home() {
             <button 
               onClick={() => setEmergencyMode(!emergencyMode)}
               className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-widest font-mono font-bold border transition-all ${
-                emergencyMode 
-                  ? 'bg-rose-950/40 border-rose-500/50 text-rose-400 animate-pulse' 
-                  : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white'
+                emergencyMode ? 'bg-rose-950/40 border-rose-500/50 text-rose-400' : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white'
               }`}
             >
               {emergencyMode ? "Disable Threat Mock" : "Simulate Cyclone Warning"}
@@ -296,13 +279,13 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Dynamic Climate Telemetry Ribbon */}
+        {/* Climate Telemetry Ribbon */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { label: `Target Location`, value: climate.location, color: "text-amber-400 text-sm md:text-base truncate" },
             { label: "Precipitation Vector", value: emergencyMode ? "85%" : climate.precipitation, color: "text-sky-400" },
             { label: "Wind Velocity Matrix", value: emergencyMode ? "48 mph NE" : climate.windSpeed, color: "text-emerald-400" },
-            { label: "Cyclone Track Vector", value: emergencyMode ? "CAT-1 Approaching" : climate.cycloneThreat, color: emergencyMode ? "text-rose-500 font-black animate-pulse" : "text-slate-400" }
+            { label: "Cyclone Track Vector", value: emergencyMode ? "CAT-1 Approaching" : climate.cycloneThreat, color: emergencyMode ? "text-rose-500 font-black" : "text-slate-400" }
           ].map((stat, idx) => (
             <div key={idx} className="bg-slate-950/50 backdrop-blur-md border border-white/5 p-4 rounded-xl flex flex-col shadow-lg overflow-hidden">
               <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold truncate">{stat.label}</span>
@@ -311,18 +294,18 @@ export default function Home() {
           ))}
         </section>
 
-        {/* Dynamic Countdown & Safe Place Dock */}
-        <div className={`mb-6 p-5 backdrop-blur-md rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all duration-500 border ${
+        {/* Countdown Alert Notification Dock */}
+        <div className={`mb-6 p-5 backdrop-blur-md rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border ${
           emergencyMode ? 'bg-rose-950/30 border-rose-500/30' : 'bg-emerald-950/20 border-emerald-500/20'
         }`}>
           <div className="flex-1">
             <h4 className={`text-xs font-bold uppercase tracking-wider ${emergencyMode ? 'text-rose-400' : 'text-emerald-400'}`}>
-              {emergencyMode ? "🚨 MANDATORY EVACUATION RADIAL ACTIVE" : "🛡️ Shelter Relocation Framework Status"}
+              {emergencyMode ? "🚨 MANDATORY EVACUATION RADIAL ACTIVE" : "🛡️ Shelter Relocation Status"}
             </h4>
             <p className="text-xs text-slate-400 mt-1">
               {emergencyMode 
-                ? "Extreme storm surges mapped. Clear transit lanes immediately to reach the pinned geographical backup shelter on your display tracker."
-                : "Atmospheric tracking arrays confirm perfectly safe parameters. Evacuation countdowns are dormant."}
+                ? "Extreme storm surges mapped. Clear transit lanes immediately to reach the pinned geographical backup shelter."
+                : "Atmospheric tracking arrays confirm safe parameters. Evacuation countdowns are dormant."}
             </p>
           </div>
 
@@ -346,37 +329,22 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Split Content Workspace */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-hidden mb-6">
+        {/* Main Workspace Grid */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mb-6">
           
-          {/* 📍 CENTER/LEFT SPAN: REAL-TIME GEOLOCATION MAP TERMINAL */}
-          <section className="md:col-span-2 bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[350px] relative group">
+          {/* Spatial Map Component Box */}
+          <section className="md:col-span-2 bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[350px]">
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                Live Spatial Telemetry Grid
-              </h3>
-              <button 
-                onClick={requestUserLocation}
-                className="text-[10px] font-mono font-bold text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-widest flex items-center gap-1"
-              >
-                🛰️ Recenter GPS
-              </button>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            
-            {/* The Visual Leaflet Container Map Element */}
-            <div 
-              ref={mapContainerRef} 
-              className="flex-1 w-full rounded-xl overflow-hidden border border-white/5 shadow-inner z-10" 
-              style={{ minHeight: '280px' }}
-            />
+            {/* Leaflet Mount node with structural absolute dimensions */}
+            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[280px] z-10" />
           </section>
 
-          {/* Right Column: Mini Survey Data Logging Block */}
+          {/* Form Observation Panel */}
           <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col gap-4 justify-between">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 mb-4">
-                Log Field Observation
-              </h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 mb-4">Log Field Observation</h3>
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Location / sector</label>
@@ -388,7 +356,6 @@ export default function Home() {
                     className="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-3 text-xs text-white placeholder-slate-600 outline-none focus:ring-1 focus:ring-sky-500"
                   />
                 </div>
-
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Category</label>
                   <select 
@@ -401,33 +368,21 @@ export default function Home() {
                     <option value="Water Supply System">Water Supply System</option>
                   </select>
                 </div>
-
-                <button 
-                  type="submit"
-                  className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-[10px] uppercase tracking-widest py-2.5 rounded-xl transition-all shadow-md mt-2"
-                >
+                <button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-[10px] uppercase tracking-widest py-2.5 rounded-xl transition-all shadow-md mt-2">
                   Incorporate Record
                 </button>
               </form>
             </div>
-
-            {/* Quick Summary Tracker Metrics */}
             <div className="border-t border-white/10 pt-3 text-[10px] font-mono text-slate-400 space-y-1">
               <div>Total Survey Points Saved: <span className="text-white font-bold">{submissions.length}</span></div>
-              <div>Active Baseline Coordinates: <span className="text-sky-400 font-bold">Live Geo Tracked</span></div>
             </div>
           </section>
 
         </div>
 
-        {/* Bottom Context Footnote Status */}
+        {/* Footer */}
         <footer className="w-full text-center py-2 border-t border-white/5">
-          <p className="text-slate-400 text-xs italic tracking-wide max-w-xl mx-auto">
-            {introText || "Awaiting pipeline connection..."}
-          </p>
-          <div className="flex justify-center gap-4 mt-3 text-[9px] text-slate-600 uppercase tracking-widest font-mono font-bold">
-             <span>Map Layer: Rendered</span> • <span>Charan Edition Build</span> • <span>Project Type: CSP</span>
-          </div>
+          <p className="text-slate-400 text-xs italic tracking-wide max-w-xl mx-auto">{introText}</p>
         </footer>
 
       </div>
