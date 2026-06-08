@@ -1,20 +1,25 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 
-interface Message {
-  sender: 'user' | 'shell';
-  text: string;
+interface SurveySubmission {
+  id: number;
+  location: string;
+  category: string;
+  satisfaction: number;
   timestamp: string;
 }
 
 export default function Home() {
-  const [query, setQuery] = useState("");
   const [introText, setIntroText] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [submissions, setSubmissions] = useState<SurveySubmission[]>([
+    { id: 101, location: "Kondapalli Center", category: "Public Infrastructure", satisfaction: 4, timestamp: "06:42 PM" },
+    { id: 102, location: "LBRCE Suburb", category: "Waste Management", satisfaction: 2, timestamp: "07:15 PM" },
+    { id: 103, location: "Gopal Nagar", category: "Water Supply System", satisfaction: 5, timestamp: "07:38 PM" }
+  ]);
+  const [formData, setFormData] = useState({ location: "", category: "Public Infrastructure", satisfaction: 3 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const fullGreeting = "Welcome, Choosav ga inka DENGEY Em ledhu";
+  const fullGreeting = "Welcome, Charan. Secure project node established. Initializing Community Survey Matrix analytics...";
 
   // Typewriter banner effect
   useEffect(() => {
@@ -27,12 +32,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-scroll chat window to the absolute newest message payload
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // 🌊 Pure JS 3D Live Wave Animation Matrix Engine
+  // 🌊 Pure JS 3D Live Wave Animation Matrix Engine (Bioluminescent Ocean)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -67,7 +67,7 @@ export default function Home() {
 
       const fov = 350; 
       const cx = width / 2;
-      const cy = height * 0.75; // Push matrix horizon lower for clean text space
+      const cy = height * 0.8; 
 
       for (let ix = 0; ix < AMOUNTX; ix++) {
         for (let iy = 0; iy < AMOUNTY; iy++) {
@@ -80,18 +80,18 @@ export default function Home() {
           const y2d = cy + y3d * scale;
 
           if (x2d >= 0 && x2d <= width && y2d >= 0 && y2d <= height) {
-            const alpha = Math.max(0.08, scale * 0.9);
-            const size = Math.max(0.5, scale * 3.0);
+            const alpha = Math.max(0.06, scale * 0.8);
+            const size = Math.max(0.5, scale * 2.5);
 
             ctx.beginPath();
             ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(0, 150, 255, ${alpha})`;
+            ctx.fillStyle = `rgba(14, 165, 233, ${alpha})`;
             ctx.fill();
           }
         }
       }
 
-      count += 0.03; 
+      count += 0.025; 
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -103,130 +103,63 @@ export default function Home() {
     };
   }, []);
 
-  // Chat Processing Logic
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!formData.location.trim()) return;
 
     const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    // 1. Capture User Input Payload
-    const userMessage: Message = {
-      sender: 'user',
-      text: query,
+    const newSubmission: SurveySubmission = {
+      id: Date.now() % 1000,
+      location: formData.location,
+      category: formData.category,
+      satisfaction: Number(formData.satisfaction),
       timestamp: timeString
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    const userQuery = query.toLowerCase();
-    setQuery("");
-
-    // 2. Generate Automated Core AI Responses (Simulated Shell Brain)
-    setTimeout(() => {
-      let replyText = "Query registered in depths. Matrix data processing ongoing.";
-      
-      if (userQuery.includes("hello") || userQuery.includes("hi")) {
-        replyText = "Greetings, Charan. System status optimal. Standing by for specific core directives.";
-      } else if (userQuery.includes("status") || userQuery.includes("system")) {
-        replyText = "All sentinel node links are stable. Encryption: SSL Layer Active. Core: 3D Mathematical Wave Mesh operational.";
-      } else if (userQuery.includes("clear")) {
-        setMessages([]);
-        return;
-      } else if (userQuery.includes("help")) {
-        replyText = "Available commands: 'status' (check node health), 'clear' (purge current chat array logs).";
-      }
-
-      const shellResponse: Message = {
-        sender: 'shell',
-        text: replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      setMessages(prev => [...prev, shellResponse]);
-    }, 750);
+    setSubmissions(prev => [newSubmission, ...prev]);
+    setFormData(prev => ({ ...prev, location: "" }));
   };
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden font-sans bg-[#000511]">
-      {/* 🔮 Live 3D Particle Render Canvas Layer */}
+      {/* Live 3D Mathematical Backdrop */}
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
-      {/* 🐚 Chat UI Interface Layer */}
-      <div className="relative z-10 flex flex-col justify-between h-screen w-full max-w-4xl mx-auto py-8 px-4 md:px-6">
+      {/* UI Interface Layer */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto py-8 px-4 md:px-6 flex flex-col justify-between min-h-screen">
         
-        {/* Top Header Interface */}
-        <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl">
+        {/* Top Header Panel */}
+        <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl mb-6">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(0,150,255,0.3)]">
+            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(14,165,233,0.4)]">
               SHELL AI
             </h1>
-            <span className="text-[9px] font-mono text-blue-400 tracking-widest uppercase mt-0.5">Ethical Sentinel System</span>
+            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Community Survey Project</span>
           </div>
-          <div className="flex items-center gap-2 bg-blue-950/40 border border-blue-500/30 px-3 py-1 rounded-full">
+          <div className="flex items-center gap-2 bg-sky-950/40 border border-sky-500/30 px-3 py-1 rounded-full">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-mono text-gray-300 uppercase tracking-wider font-bold">Charan Edition</span>
           </div>
         </header>
 
-        {/* Center Chat Log Stream Frame */}
-        <section className="flex-1 my-6 overflow-y-auto pr-2 space-y-4 rounded-2xl bg-black/10 backdrop-blur-sm p-4 custom-scrollbar">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-80 transition-all duration-500 mt-20">
-              <p className="text-blue-200 text-lg italic font-light max-w-md px-6 leading-relaxed">
-                {introText}
-              </p>
+        {/* Project Metrics Summary Ribbon */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: "Total Submissions", value: submissions.length, color: "text-sky-400" },
+            { label: "Target Reach", value: "250 Nodes", color: "text-emerald-400" },
+            { label: "Matrix Status", value: "Active", color: "text-amber-400" },
+            { label: "Completion Rate", value: "88%", color: "text-purple-400" }
+          ].map((stat, idx) => (
+            <div key={idx} className="bg-slate-950/50 backdrop-blur-md border border-white/5 p-4 rounded-xl flex flex-col">
+              <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold">{stat.label}</span>
+              <span className={`text-xl font-extrabold mt-1 ${stat.color}`}>{stat.value}</span>
             </div>
-          ) : (
-            messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex flex-col max-w-[80%] ${
-                  msg.sender === 'user' ? 'ml-auto items-end' : 'mr-auto items-start'
-                } animate-slideUp`}
-              >
-                <div
-                  className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-lg font-medium border ${
-                    msg.sender === 'user'
-                      ? 'bg-blue-600 border-blue-400 text-white rounded-br-none shadow-blue-900/10'
-                      : 'bg-slate-900/80 border-white/10 text-slate-100 rounded-bl-none'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-                <span className="text-[9px] font-mono text-slate-500 mt-1 px-1">
-                  {msg.timestamp}
-                </span>
-              </div>
-            ))
-          )}
-          <div ref={chatEndRef} />
+          ))}
         </section>
 
-        {/* Input Interactive Command Dock */}
-        <footer className="w-full">
-          <form onSubmit={handleSendMessage} className="relative group">
-            <input 
-              type="text" 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Inject statement into matrix stream..." 
-              className="w-full bg-slate-950/60 backdrop-blur-2xl border border-white/10 rounded-full py-4 px-6 pr-16 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-transparent transition-all shadow-2xl text-base font-medium"
-            />
-            <button 
-              type="submit"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full transition-all shadow-md active:scale-95"
-            >
-              <svg xmlns="http://www.w3.org/2000/xl" className="h-5 w-5" fill="none" viewBox="0 0 24 24 " stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </form>
-          <div className="flex justify-center gap-4 mt-3 text-[9px] text-slate-600 uppercase tracking-widest font-mono font-bold">
-             <span>Secure Shell Core</span> • <span>State: Listening</span> • <span>No Dependency Build</span>
-          </div>
-        </footer>
-
-      </div>
-    </main>
-  );
-}
+        {/* Main Split Content Workspace */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-hidden mb-6">
+          
+          {/* Left Column: Data Ingestion Form */}
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2">
