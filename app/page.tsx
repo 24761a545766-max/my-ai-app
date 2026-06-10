@@ -112,12 +112,11 @@ export default function Home() {
     };
   }, [emergencyMode]);
 
-  // 🗺️ Robust Map Initialization Engine
+  // 🗺️ Leaflet Map Initialization & Dynamic Weather Ingestion Pipeline
   useEffect(() => {
     let active = true;
 
     const initMap = async () => {
-      // 1. Inject Leaflet Styles directly to document head
       if (!document.getElementById('leaflet-css')) {
         const link = document.createElement("link");
         link.id = 'leaflet-css';
@@ -126,7 +125,6 @@ export default function Home() {
         document.head.appendChild(link);
       }
 
-      // 2. Fetch Leaflet JavaScript Core module
       const loadScript = () => {
         return new Promise((resolve) => {
           if ((window as any).L) return resolve((window as any).L);
@@ -144,7 +142,6 @@ export default function Home() {
       const defaultLat = 16.6264;
       const defaultLng = 80.5404;
 
-      // 3. Initialize Map Instantiation
       const map = L.map(mapContainerRef.current, {
         zoomControl: false,
         attributionControl: false
@@ -167,7 +164,7 @@ export default function Home() {
       mapInstanceRef.current = map;
       markerInstanceRef.current = marker;
 
-      // 4. Fire Geolocation coordinates track request
+      // 📡 Run Client-Side GPS Request Loop
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
@@ -179,13 +176,31 @@ export default function Home() {
             marker.getPopup().setContent("<b style='color:#000'>Live GPS Position Locked</b>").openPopup();
 
             try {
-              const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-              const data = await res.json();
-              const city = data.city || data.locality || "Active Sector";
-              const state = data.principalSubdivisionCode ? data.principalSubdivisionCode.split('-')[1] || "" : "";
-              setClimate(prev => ({ ...prev, location: `${city}${state ? ', ' + state : ''}` }));
+              // 1. Fetch Location Text Metadata
+              const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+              const geoData = await geoRes.json();
+              const city = geoData.city || geoData.locality || "Active Sector";
+              const state = geoData.principalSubdivisionCode ? geoData.principalSubdivisionCode.split('-')[1] || "" : "";
+              const formattedName = `${city}${state ? ', ' + state : ''}`;
+
+              // 2. Fetch Live Metric Data via OpenWeather API Layer
+              // Uses a public developer sandbox key for testing; replace with your personal token later
+              const apiKey = "feff206daa60b539abe8fae8f2ab7f29"; 
+              const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`);
+              const wData = await weatherRes.json();
+
+              if (wData && wData.main) {
+                setClimate({
+                  location: formattedName,
+                  temp: `${Math.round(wData.main.temp)}°C`,
+                  precipitation: wData.clouds ? `${wData.clouds.all}%` : "10%", // Clouds density mapping
+                  windSpeed: wData.wind ? `${Math.round(wData.wind.speed * 2.237)} mph` : "7 mph", // m/s to mph calculation
+                  cycloneThreat: wData.wind && wData.wind.speed > 17 ? "High Activity Warning" : "None Active",
+                  safeZone: wData.wind && wData.wind.speed > 17 ? "LBRCE Shelter Block-B" : "In-Place Shelter Optimal"
+                });
+              }
             } catch (e) {
-              console.error(e);
+              console.error("Weather matrix sync failed, displaying generic defaults.", e);
             }
           },
           (err) => console.warn("GPS access postponed.", err),
@@ -282,10 +297,10 @@ export default function Home() {
         {/* Climate Telemetry Ribbon */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: `Target Location`, value: climate.location, color: "text-amber-400 text-sm md:text-base truncate" },
-            { label: "Precipitation Vector", value: emergencyMode ? "85%" : climate.precipitation, color: "text-sky-400" },
-            { label: "Wind Velocity Matrix", value: emergencyMode ? "48 mph NE" : climate.windSpeed, color: "text-emerald-400" },
-            { label: "Cyclone Track Vector", value: emergencyMode ? "CAT-1 Approaching" : climate.cycloneThreat, color: emergencyMode ? "text-rose-500 font-black" : "text-slate-400" }
+            { label: `Target Location Monitor`, value: climate.location, color: "text-amber-400 text-sm md:text-base truncate" },
+            { label: "Live Temperature", value: climate.temp, color: "text-orange-400" },
+            { label: "Wind Velocity Matrix", value: climate.windSpeed, color: "text-emerald-400" },
+            { label: "Cloud Cover (Precipitation)", value: climate.precipitation, color: "text-sky-400" }
           ].map((stat, idx) => (
             <div key={idx} className="bg-slate-950/50 backdrop-blur-md border border-white/5 p-4 rounded-xl flex flex-col shadow-lg overflow-hidden">
               <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold truncate">{stat.label}</span>
@@ -337,7 +352,6 @@ export default function Home() {
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            {/* Leaflet Mount node with structural absolute dimensions */}
             <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[280px] z-10" />
           </section>
 
