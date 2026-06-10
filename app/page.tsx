@@ -23,7 +23,7 @@ export default function Home() {
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [userCoords, setUserCoords] = useState({ lat: 16.6264, lng: 80.5404 });
   
-  // Designated Safe Location (LBRCE Cyclone Shelter Block-B Coordinates)
+  // Safe Shelter Coordinates (LBRCE Cyclone Shelter Block-B)
   const shelterCoords = { lat: 16.6586, lng: 80.5332 };
 
   const [climate, setClimate] = useState<ClimateData>({
@@ -104,7 +104,7 @@ export default function Home() {
     };
   }, [emergencyMode]);
 
-  // 🗺️ Leaflet Map Initialization & Weather Data Ingestion Pipeline
+  // 🗺️ Map Setup & Automated Live Data Threat Analysis
   useEffect(() => {
     let active = true;
 
@@ -162,7 +162,6 @@ export default function Home() {
             setUserCoords({ lat: latitude, lng: longitude });
             map.setView([latitude, longitude], 13);
             userMarker.setLatLng([latitude, longitude]);
-            userMarker.getPopup().setContent("<b style='color:#000'>Live GPS Position Locked</b>").openPopup();
 
             try {
               const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
@@ -176,23 +175,30 @@ export default function Home() {
               const wData = await weatherRes.json();
 
               if (wData && wData.main) {
-                const isStormy = wData.wind && wData.wind.speed > 17;
-                if (isStormy) setEmergencyMode(true);
+                const liveWindMetersPerSec = wData.wind ? wData.wind.speed : 0;
+                const windMph = Math.round(liveWindMetersPerSec * 2.237);
+                
+                // 🌪️ AUTOMATED THREAT EVALUATION BLOCK
+                // If live wind speed exceeds 38 mph (Tropical Storm/Cyclone baseline boundary), engage emergency mode automatically
+                const liveCycloneThreatDetected = windMph >= 38;
+                if (liveCycloneThreatDetected) {
+                  setEmergencyMode(true);
+                }
 
                 setClimate({
                   location: formattedName,
                   temp: `${Math.round(wData.main.temp)}°C`,
                   precipitation: wData.clouds ? `${wData.clouds.all}%` : "10%",
-                  windSpeed: wData.wind ? `${Math.round(wData.wind.speed * 2.237)} mph` : "7 mph",
-                  cycloneThreat: isStormy ? "CAT-1 Approaching" : "None Active",
-                  safeZone: isStormy ? "LBRCE Cyclone Shelter Block-B" : "In-Place Shelter Optimal"
+                  windSpeed: `${windMph} mph`,
+                  cycloneThreat: liveCycloneThreatDetected ? "⚠️ Active Threat Detected" : "None Active",
+                  safeZone: liveCycloneThreatDetected ? "LBRCE Cyclone Shelter Block-B" : "In-Place Shelter Optimal"
                 });
               }
             } catch (e) {
-              console.error("Weather sync failed", e);
+              console.error("Live monitoring link delayed.", e);
             }
           },
-          (err) => console.warn("GPS access postponed.", err),
+          (err) => console.warn("GPS tracking offline.", err),
           { enableHighAccuracy: true, timeout: 7000 }
         );
       }
@@ -202,13 +208,14 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  // 🚨 Dynamic Emergency Routing Map Layer
+  // 🚨 Dynamic Spatial Marker Map Routing Interceptor
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
     const L = (window as any).L;
 
     if (emergencyMode) {
+      // Pin Safe Place immediately on the map interface
       const redShelterIcon = L.divIcon({
         className: 'shelter-div-icon',
         html: `<div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 18px solid #f43f5e; filter: drop-shadow(0 0 8px #f43f5e); animate: bounce 1s infinite;"></div>`,
@@ -217,39 +224,45 @@ export default function Home() {
       });
 
       const shelterMarker = L.marker([shelterCoords.lat, shelterCoords.lng], { icon: redShelterIcon }).addTo(map);
-      shelterMarker.bindPopup("<b style='color:#e11d48; font-weight:900;'>🚨 TARGET SAFE PLACE:<br/>LBRCE Shelter Block-B</b>").openPopup();
+      shelterMarker.bindPopup("<b style='color:#e11d48; font-weight:900;'>🚨 EMERGENCY TARGET DESTINATION:<br/>LBRCE Shelter Block-B</b>").openPopup();
       shelterMarkerRef.current = shelterMarker;
 
+      // Draw vector connector line from user to safety
       const routingLine = L.polyline(
         [[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]],
-        { color: '#f43f5e', weight: 3, dashArray: '6, 8', opacity: 0.85 }
+        { color: '#f43f5e', weight: 4, dashArray: '6, 8', opacity: 0.9 }
       ).addTo(map);
       routingLineRef.current = routingLine;
 
+      // Auto-adjust bounding box to visually redirect user view
       const bounds = L.latLngBounds([[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]]);
-      map.fitBounds(bounds, { padding: [40, 40] });
+      map.fitBounds(bounds, { padding: [50, 50] });
 
     } else {
-      if (shelterMarkerRef.current) {
-        map.removeLayer(shelterMarkerRef.current);
-        shelterMarkerRef.current = null;
-      }
-      if (routingLineRef.current) {
-        map.removeLayer(routingLineRef.current);
-        routingLineRef.current = null;
-      }
+      // Clear pins safely if environmental thread loop normalizes
+      if (shelterMarkerRef.current) { map.removeLayer(shelterMarkerRef.current); shelterMarkerRef.current = null; }
+      if (routingLineRef.current) { map.removeLayer(routingLineRef.current); routingLineRef.current = null; }
       map.setView([userCoords.lat, userCoords.lng], 13);
-      if (userMarkerRef.current) {
-        userMarkerRef.current.openPopup();
-      }
+      if (userMarkerRef.current) userMarkerRef.current.openPopup();
     }
   }, [emergencyMode, userCoords]);
 
-  // ⏱️ Evacuation Countdown Timer Engine
+  // ⏱️ Dynamic Proportional Countdown Clock Engine
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    
     if (emergencyMode) {
-      let totalSeconds = 4 * 3600 + 12 * 60;
+      // Parse numerical velocity context to scale the countdown safety window dynamically
+      const numericWind = parseInt(climate.windSpeed) || 45;
+      
+      // Dynamic Calculus: Higher wind velocities = Closer core storm boundary = Lower evacuation timeframe window allowed
+      let calculatedBufferHours = 5;
+      if (numericWind > 75) calculatedBufferHours = 1;      // Catastrophic
+      else if (numericWind > 55) calculatedBufferHours = 2; // Severe
+      else if (numericWind > 40) calculatedBufferHours = 3; // Moderate High
+      
+      let totalSeconds = calculatedBufferHours * 3600 + 45 * 60; // Base margin pad minutes
+      
       timer = setInterval(() => {
         if (totalSeconds <= 0) {
           clearInterval(timer);
@@ -265,14 +278,15 @@ export default function Home() {
     } else {
       setCountdown({ hours: 0, minutes: 0, seconds: 0 });
     }
-    return () => clearInterval(timer);
-  }, [emergencyMode]);
 
-  // Typewriter banner greeting updates
+    return () => clearInterval(timer);
+  }, [emergencyMode, climate.windSpeed]);
+
+  // Typewriter introduction updates
   useEffect(() => {
     let i = 0;
-    const statusText = emergencyMode ? "⚠️ CRITICAL WARNING VECTOR DETECTED." : "System Status: CLEAR.";
-    const fullGreeting = `Secure node linked: ${climate.location}. Weather Engine initialized. Current ${statusText}`;
+    const statusText = emergencyMode ? "⚠️ CRITICAL EVACUATION ROUTING STARTED." : "System Status: CLEAR.";
+    const fullGreeting = `Secure node linked: ${climate.location}. Live tracking telemetry ready. Current ${statusText}`;
     setIntroText("");
     const timer = setInterval(() => {
       setIntroText(fullGreeting.slice(0, i));
@@ -294,16 +308,24 @@ export default function Home() {
             <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(244,63,94,0.3)]">
               CYCLONE ALERT SYSTEM
             </h1>
-            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Atmospheric Telemetry Grid</span>
+            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Automated Emergency Interceptor</span>
           </div>
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setEmergencyMode(!emergencyMode)}
+              onClick={() => {
+                setEmergencyMode(!emergencyMode);
+                // Adjust parameters manually during simulation trigger test
+                if(!emergencyMode) {
+                  setClimate(prev => ({...prev, windSpeed: "52 mph", cycloneThreat: "⚠️ Simulated Core Threat", safeZone: "LBRCE Cyclone Shelter Block-B"}));
+                } else {
+                  setClimate(prev => ({...prev, windSpeed: "7 mph", cycloneThreat: "None Active", safeZone: "In-Place Shelter Optimal"}));
+                }
+              }}
               className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-widest font-mono font-bold border transition-all ${
                 emergencyMode ? 'bg-rose-950/40 border-rose-500/50 text-rose-400 animate-pulse' : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white'
               }`}
             >
-              {emergencyMode ? "Disable Threat Mock" : "Simulate Cyclone Warning"}
+              {emergencyMode ? "Reset to Safe Tracker" : "Force Simulation Alert"}
             </button>
             <div className="flex items-center gap-2 bg-sky-950/40 border border-sky-500/30 px-3 py-1 rounded-full">
               <span className={`w-2 h-2 rounded-full ${emergencyMode ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
@@ -317,8 +339,8 @@ export default function Home() {
           {[
             { label: `Target Location Monitor`, value: climate.location, color: "text-amber-400 text-sm md:text-base truncate" },
             { label: "Live Temperature", value: climate.temp, color: "text-orange-400" },
-            { label: "Wind Velocity Matrix", value: emergencyMode ? "48 mph NE" : climate.windSpeed, color: "text-emerald-400" },
-            { label: "Cloud Cover (Precipitation)", value: emergencyMode ? "85%" : climate.precipitation, color: "text-sky-400" }
+            { label: "Velocity Tracking Matrix", value: climate.windSpeed, color: emergencyMode ? "text-rose-400 font-extrabold animate-pulse" : "text-emerald-400" },
+            { label: "Cyclone Threat Index", value: climate.cycloneThreat, color: emergencyMode ? "text-rose-500 font-black animate-pulse" : "text-slate-400" }
           ].map((stat, idx) => (
             <div key={idx} className="bg-slate-950/50 backdrop-blur-md border border-white/5 p-4 rounded-xl flex flex-col shadow-lg overflow-hidden">
               <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold truncate">{stat.label}</span>
@@ -327,34 +349,34 @@ export default function Home() {
           ))}
         </section>
 
-        {/* Evacuation Countdown Block */}
+        {/* Countdown Alert Notification Dock */}
         <div className={`mb-6 p-5 backdrop-blur-md rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border transition-all duration-500 ${
           emergencyMode ? 'bg-rose-950/30 border-rose-500/30 shadow-[0_0_25px_rgba(244,63,94,0.15)]' : 'bg-emerald-950/20 border-emerald-500/20'
         }`}>
           <div className="flex-1">
             <h4 className={`text-xs font-bold uppercase tracking-wider ${emergencyMode ? 'text-rose-400' : 'text-emerald-400'}`}>
-              {emergencyMode ? "🚨 MANDATORY EVACUATION RADIAL ACTIVE" : "🛡️ Shelter Relocation Status"}
+              {emergencyMode ? "🚨 AUTOMATED EMERGENCY INTERCEPT ACTIVE" : "🛡️ Shelter Relocation Status"}
             </h4>
             <p className="text-xs text-slate-400 mt-1">
               {emergencyMode 
-                ? "Extreme storm surges mapped. Route lines plotted to safe place. Move immediately along designated lanes before time hits zero."
-                : "Atmospheric tracking arrays confirm safe parameters. Evacuation countdowns are safely resting."}
+                ? "Velocity index tripped. Safe place pinpointed on spatial map. Evacuate along route coordinates immediately before the dynamic wind countdown hits zero."
+                : "Atmospheric tracking arrays confirm safe wind velocities. Evacuation countdowns are currently resting at zero."}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-center">
-            {/* Countdown Clock Display Box */}
-            <div className={`bg-black/50 border px-4 py-2 rounded-lg flex flex-col items-center min-w-[120px] transition-colors ${emergencyMode ? 'border-rose-500/40' : 'border-white/5'}`}>
-              <span className={`text-[8px] font-mono uppercase tracking-widest font-bold ${emergencyMode ? 'text-rose-400' : 'text-slate-500'}`}>TIME REMAINING</span>
+            {/* Dynamic Proportional Countdown Display */}
+            <div className={`bg-black/50 border px-4 py-2 rounded-lg flex flex-col items-center min-w-[120px] transition-all ${emergencyMode ? 'border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.2)] bg-rose-950/20' : 'border-white/5'}`}>
+              <span className={`text-[8px] font-mono uppercase tracking-widest font-bold ${emergencyMode ? 'text-rose-400' : 'text-slate-500'}`}>WIND COUNTDOWN</span>
               <span className={`text-lg font-mono font-black tracking-widest mt-0.5 ${emergencyMode ? 'text-white' : 'text-slate-600'}`}>
                 {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
               </span>
             </div>
             
             <div className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex flex-col border transition-all ${
-              emergencyMode ? 'bg-rose-950 border-rose-400 text-white' : 'bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
+              emergencyMode ? 'bg-rose-950 border-rose-400 text-white animate-pulse' : 'bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
             }`}>
-              <span className="text-[8px] opacity-60 uppercase tracking-wider font-bold">DESIGNATED SAFE DESTINATION</span>
+              <span className="text-[8px] opacity-60 uppercase tracking-wider font-bold">TARGET SAFE SHELTER</span>
               <span className="text-sm mt-0.5 font-sans font-extrabold">
                 {emergencyMode ? "LBRCE Cyclone Shelter Block-B" : "In-Place Shelter Optimal"}
               </span>
@@ -364,18 +386,16 @@ export default function Home() {
 
         {/* Map Spatial Grid Interface Area */}
         <div className="grid grid-cols-1 gap-6 items-stretch mb-6">
-          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[380px]">
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[400px]">
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[320px] z-10" />
+            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[340px] z-10" />
           </section>
         </div>
 
-        {/* 🛡️ Bilingual Precautions & Guidelines Panel */}
+        {/* Bilingual Precautions Panel */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          
-          {/* English Precautions */}
           <section className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl">
             <div className="flex items-center gap-2 border-b border-white/10 pb-3 mb-4">
               <span className="text-lg">🇬🇧</span>
@@ -385,12 +405,9 @@ export default function Home() {
               <li><strong className="text-white">Stay Informed:</strong> Keep checking the map route and tracking vectors for changes.</li>
               <li><strong className="text-white">Evacuate Early:</strong> Pack an emergency kit and follow the route before the countdown timer hits zero.</li>
               <li><strong className="text-white">Power Safety:</strong> Disconnect all electrical appliances to avoid short circuits.</li>
-              <li><strong className="text-white">Secure Belongings:</strong> Move loose outdoor items indoors and lock doors/windows tightly.</li>
-              <li><strong className="text-white">Avoid Water Bodies:</strong> Keep away from floodwaters, storm drains, and open shores.</li>
             </ul>
           </section>
 
-          {/* Telugu Precautions */}
           <section className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl">
             <div className="flex items-center gap-2 border-b border-white/10 pb-3 mb-4">
               <span className="text-lg">🇮🇳</span>
@@ -398,13 +415,10 @@ export default function Home() {
             </div>
             <ul className="space-y-3 text-xs text-slate-300 list-disc pl-4 marker:text-rose-400 leading-relaxed">
               <li><strong className="text-white">సమాచారం తెలుసుకోండి:</strong> మ్యాప్ రూట్ మరియు తుఫాను హెచ్చరికలను నిరంతరం గమనిస్తూ ఉండండి.</li>
-              <li><strong className="text-white">త్వరగా తరలివెళ్ళండి:</strong> కౌంట్‌డౌన్ సమయం ముగిసేలోపే అత్యవసర వస్తువులతో సురక్షిత ప్రాంతానికి చేరుకోండి.</li>
-              <li><strong className="text-white">విద్యుత్ జాగ్రత్తలు:</strong> షార్ట్ సర్క్యూట్‌లను నివారించడానికి అన్ని ఎలక్ట్రికల్ పవర్ మెయిన్స్ ఆపివేయండి.</li>
-              <li><strong className="text-white">సురక్షితంగా ఉండండి:</strong> ఇంటి తలుపులు, కిటికీలు గట్టిగా వేసి ఉంచండి. బయట వస్తువులను లోపల పెట్టండి.</li>
-              <li><strong className="text-white">వరద నీటికి దూరంగా ఉండండి:</strong> కాలువలు, చెరువులు మరియు వరద నీరు ప్రవహించే ప్రాంతాలకు వెళ్లవద్దు.</li>
+              <li><strong className="text-white">త్వరగా తరలివెళ్ళండి:</strong> కౌంట్‌డౌన్ సమయం ముగిసేలోపే సురక్షిత ప్రాంతానికి చేరుకోండి.</li>
+              <li><strong className="text-white">విద్యుత్ జాగ్రత్తలు:</strong> షార్ట్ సర్క్యూట్‌లను నివారించడానికి పవర్ మెయిన్స్ ఆపివేయండి.</li>
             </ul>
           </section>
-
         </div>
 
         {/* Footer */}
