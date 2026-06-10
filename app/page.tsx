@@ -1,14 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 
-interface SurveySubmission {
-  id: number;
-  location: string;
-  category: string;
-  satisfaction: number;
-  timestamp: string;
-}
-
 interface ClimateData {
   location: string;
   temp: string;
@@ -20,13 +12,6 @@ interface ClimateData {
 
 export default function Home() {
   const [introText, setIntroText] = useState("");
-  const [submissions, setSubmissions] = useState<SurveySubmission[]>([
-    { id: 101, location: "Kondapalli Center", category: "Public Infrastructure", satisfaction: 4, timestamp: "06:42 PM" },
-    { id: 102, location: "LBRCE Suburb", category: "Waste Management", satisfaction: 2, timestamp: "07:15 PM" },
-    { id: 103, location: "Gopal Nagar", category: "Water Supply System", satisfaction: 5, timestamp: "07:38 PM" }
-  ]);
-  const [formData, setFormData] = useState({ location: "", category: "Public Infrastructure", satisfaction: 3 });
-  
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -164,7 +149,6 @@ export default function Home() {
       mapInstanceRef.current = map;
       markerInstanceRef.current = marker;
 
-      // 📡 Run Client-Side GPS Request Loop
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
@@ -176,31 +160,31 @@ export default function Home() {
             marker.getPopup().setContent("<b style='color:#000'>Live GPS Position Locked</b>").openPopup();
 
             try {
-              // 1. Fetch Location Text Metadata
               const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
               const geoData = await geoRes.json();
               const city = geoData.city || geoData.locality || "Active Sector";
               const state = geoData.principalSubdivisionCode ? geoData.principalSubdivisionCode.split('-')[1] || "" : "";
               const formattedName = `${city}${state ? ', ' + state : ''}`;
 
-              // 2. Fetch Live Metric Data via OpenWeather API Layer
-              // Uses a public developer sandbox key for testing; replace with your personal token later
               const apiKey = "feff206daa60b539abe8fae8f2ab7f29"; 
               const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`);
               const wData = await weatherRes.json();
 
               if (wData && wData.main) {
+                const isStormy = wData.wind && wData.wind.speed > 17; // Cyclone threshold test trigger
+                if (isStormy) setEmergencyMode(true);
+
                 setClimate({
                   location: formattedName,
                   temp: `${Math.round(wData.main.temp)}°C`,
-                  precipitation: wData.clouds ? `${wData.clouds.all}%` : "10%", // Clouds density mapping
-                  windSpeed: wData.wind ? `${Math.round(wData.wind.speed * 2.237)} mph` : "7 mph", // m/s to mph calculation
-                  cycloneThreat: wData.wind && wData.wind.speed > 17 ? "High Activity Warning" : "None Active",
-                  safeZone: wData.wind && wData.wind.speed > 17 ? "LBRCE Shelter Block-B" : "In-Place Shelter Optimal"
+                  precipitation: wData.clouds ? `${wData.clouds.all}%` : "10%",
+                  windSpeed: wData.wind ? `${Math.round(wData.wind.speed * 2.237)} mph` : "7 mph",
+                  cycloneThreat: isStormy ? "CAT-1 Approaching" : "None Active",
+                  safeZone: isStormy ? "LBRCE Shelter Block-B" : "In-Place Shelter Optimal"
                 });
               }
             } catch (e) {
-              console.error("Weather matrix sync failed, displaying generic defaults.", e);
+              console.error("Weather sync failed", e);
             }
           },
           (err) => console.warn("GPS access postponed.", err),
@@ -213,11 +197,12 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  // ⏱️ Emergency Countdown Timer Engine
+  // ⏱️ Evacuation Countdown Timer Engine (Handles default reset bounds)
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    
     if (emergencyMode) {
-      let totalSeconds = 4 * 3600 + 12 * 60;
+      let totalSeconds = 4 * 3600 + 12 * 60; // 4 Hours initialization block
       timer = setInterval(() => {
         if (totalSeconds <= 0) {
           clearInterval(timer);
@@ -230,11 +215,15 @@ export default function Home() {
           seconds: totalSeconds % 60
         });
       }, 1000);
+    } else {
+      // Default state reset matrix when no alert is flagged
+      setCountdown({ hours: 0, minutes: 0, seconds: 0 });
     }
+
     return () => clearInterval(timer);
   }, [emergencyMode]);
 
-  // Typewriter text banner effect
+  // Typewriter text banner string assembly
   useEffect(() => {
     let i = 0;
     const statusText = emergencyMode ? "⚠️ CRITICAL WARNING VECTOR DETECTED." : "System Status: CLEAR.";
@@ -247,22 +236,6 @@ export default function Home() {
     }, 25);
     return () => clearInterval(timer);
   }, [climate.location, emergencyMode]);
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.location.trim()) return;
-
-    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const newSubmission: SurveySubmission = {
-      id: Date.now() % 1000,
-      location: formData.location,
-      category: formData.category,
-      satisfaction: Number(formData.satisfaction),
-      timestamp: timeString
-    };
-    setSubmissions(prev => [newSubmission, ...prev]);
-    setFormData(prev => ({ ...prev, location: "" }));
-  };
 
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden font-sans bg-[#000511]">
@@ -282,7 +255,7 @@ export default function Home() {
             <button 
               onClick={() => setEmergencyMode(!emergencyMode)}
               className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-widest font-mono font-bold border transition-all ${
-                emergencyMode ? 'bg-rose-950/40 border-rose-500/50 text-rose-400' : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white'
+                emergencyMode ? 'bg-rose-950/40 border-rose-500/50 text-rose-400 animate-pulse' : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white'
               }`}
             >
               {emergencyMode ? "Disable Threat Mock" : "Simulate Cyclone Warning"}
@@ -299,8 +272,8 @@ export default function Home() {
           {[
             { label: `Target Location Monitor`, value: climate.location, color: "text-amber-400 text-sm md:text-base truncate" },
             { label: "Live Temperature", value: climate.temp, color: "text-orange-400" },
-            { label: "Wind Velocity Matrix", value: climate.windSpeed, color: "text-emerald-400" },
-            { label: "Cloud Cover (Precipitation)", value: climate.precipitation, color: "text-sky-400" }
+            { label: "Wind Velocity Matrix", value: emergencyMode ? "48 mph NE" : climate.windSpeed, color: "text-emerald-400" },
+            { label: "Cloud Cover (Precipitation)", value: emergencyMode ? "85%" : climate.precipitation, color: "text-sky-400" }
           ].map((stat, idx) => (
             <div key={idx} className="bg-slate-950/50 backdrop-blur-md border border-white/5 p-4 rounded-xl flex flex-col shadow-lg overflow-hidden">
               <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold truncate">{stat.label}</span>
@@ -310,8 +283,8 @@ export default function Home() {
         </section>
 
         {/* Countdown Alert Notification Dock */}
-        <div className={`mb-6 p-5 backdrop-blur-md rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border ${
-          emergencyMode ? 'bg-rose-950/30 border-rose-500/30' : 'bg-emerald-950/20 border-emerald-500/20'
+        <div className={`mb-6 p-5 backdrop-blur-md rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border transition-all duration-500 ${
+          emergencyMode ? 'bg-rose-950/30 border-rose-500/30 shadow-[0_0_25px_rgba(244,63,94,0.15)]' : 'bg-emerald-950/20 border-emerald-500/20'
         }`}>
           <div className="flex-1">
             <h4 className={`text-xs font-bold uppercase tracking-wider ${emergencyMode ? 'text-rose-400' : 'text-emerald-400'}`}>
@@ -319,21 +292,21 @@ export default function Home() {
             </h4>
             <p className="text-xs text-slate-400 mt-1">
               {emergencyMode 
-                ? "Extreme storm surges mapped. Clear transit lanes immediately to reach the pinned geographical backup shelter."
-                : "Atmospheric tracking arrays confirm safe parameters. Evacuation countdowns are dormant."}
+                ? "Extreme storm surges mapped. Clear transit lanes immediately to reach the pinned geographical backup shelter on your display tracker."
+                : "Atmospheric tracking arrays confirm safe parameters. Evacuation countdowns are safely resting."}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-center">
-            {emergencyMode && (
-              <div className="bg-black/50 border border-rose-500/40 px-4 py-2 rounded-lg flex flex-col items-center min-w-[120px]">
-                <span className="text-[8px] font-mono text-rose-400 uppercase tracking-widest font-bold">TIME REMAINING</span>
-                <span className="text-lg font-mono font-black text-white tracking-widest mt-0.5">
-                  {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
-                </span>
-              </div>
-            )}
-            <div className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex flex-col border ${
+            {/* Countdown Clock Display Box */}
+            <div className={`bg-black/50 border px-4 py-2 rounded-lg flex flex-col items-center min-w-[120px] transition-colors ${emergencyMode ? 'border-rose-500/40' : 'border-white/5'}`}>
+              <span className={`text-[8px] font-mono uppercase tracking-widest font-bold ${emergencyMode ? 'text-rose-400' : 'text-slate-500'}`}>TIME REMAINING</span>
+              <span className={`text-lg font-mono font-black tracking-widest mt-0.5 ${emergencyMode ? 'text-white' : 'text-slate-600'}`}>
+                {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
+              </span>
+            </div>
+            
+            <div className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex flex-col border transition-all ${
               emergencyMode ? 'bg-rose-950 border-rose-400 text-white' : 'bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
             }`}>
               <span className="text-[8px] opacity-60 uppercase tracking-wider font-bold">DESIGNATED SAFE DESTINATION</span>
@@ -344,54 +317,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Workspace Grid */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mb-6">
-          
-          {/* Spatial Map Component Box */}
-          <section className="md:col-span-2 bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[350px]">
+        {/* Expanded Map Spatial Grid Interface Area */}
+        <div className="flex-1 grid grid-cols-1 gap-6 items-stretch mb-6">
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[380px]">
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[280px] z-10" />
+            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[320px] z-10" />
           </section>
-
-          {/* Form Observation Panel */}
-          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col gap-4 justify-between">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 mb-4">Log Field Observation</h3>
-              <form onSubmit={handleFormSubmit} className="space-y-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Location / sector</label>
-                  <input 
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="e.g. Kondapalli Ward 4"
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-3 text-xs text-white placeholder-slate-600 outline-none focus:ring-1 focus:ring-sky-500"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Category</label>
-                  <select 
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-3 text-xs text-white outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
-                  >
-                    <option value="Public Infrastructure">Public Infrastructure</option>
-                    <option value="Waste Management">Waste Management</option>
-                    <option value="Water Supply System">Water Supply System</option>
-                  </select>
-                </div>
-                <button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-[10px] uppercase tracking-widest py-2.5 rounded-xl transition-all shadow-md mt-2">
-                  Incorporate Record
-                </button>
-              </form>
-            </div>
-            <div className="border-t border-white/10 pt-3 text-[10px] font-mono text-slate-400 space-y-1">
-              <div>Total Survey Points Saved: <span className="text-white font-bold">{submissions.length}</span></div>
-            </div>
-          </section>
-
         </div>
 
         {/* Footer */}
