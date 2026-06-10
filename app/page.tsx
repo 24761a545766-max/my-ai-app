@@ -10,6 +10,13 @@ interface ClimateData {
   safeZone: string;
 }
 
+interface Shelter {
+  name: string;
+  lat: number;
+  lng: number;
+  details: string;
+}
+
 export default function Home() {
   const [introText, setIntroText] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,19 +28,50 @@ export default function Home() {
 
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const [userCoords, setUserCoords] = useState({ lat: 16.6264, lng: 80.5404 });
+  const [userCoords, setUserCoords] = useState({ lat: 16.6264, lng: 80.5404 }); // Baseline default
   
-  // Safe Shelter Coordinates (LBRCE Cyclone Shelter Block-B)
-  const shelterCoords = { lat: 16.6586, lng: 80.5332 };
+  // 🛡️ Regional Cyclone Safe Shelters Grid Array
+  const regionalShelters: Shelter[] = [
+    { name: "LBRCE Cyclone Shelter Block-B", lat: 16.6586, lng: 80.5332, details: "Reinforced Concrete Facility - Sector 1" },
+    { name: "Kondapalli Community Safe Hall", lat: 16.6180, lng: 80.5480, details: "High-Elevation Storm Center - Sector 2" },
+    { name: "Vijayawada West Relief Camp", lat: 16.5151, lng: 80.6171, details: "District Emergency Base - Sector 3" },
+    { name: "Ibrahimpatnam Coastal Rescue Node", lat: 16.5900, lng: 80.5200, details: "Emergency Flooding Defense Unit - Sector 4" }
+  ];
+
+  const [assignedShelter, setAssignedShelter] = useState<Shelter>(regionalShelters[0]);
 
   const [climate, setClimate] = useState<ClimateData>({
-    location: "Kondapalli, AP (Default)",
+    location: "Kondapalli, AP (Tracking)",
     temp: "32°C",
     precipitation: "10%",
     windSpeed: "7 mph SW",
     cycloneThreat: "None Active",
     safeZone: "In-Place Shelter Optimal"
   });
+
+  // 🧮 Mathematical Haversine Distance Calculator (Finds closest shelter)
+  const calculateNearestShelter = (userLat: number, userLng: number): Shelter => {
+    let nearest: Shelter = regionalShelters[0];
+    let minDistance = Infinity;
+
+    regionalShelters.forEach((shelter) => {
+      const R = 6371; // Earth's radius in kilometers
+      const dLat = (shelter.lat - userLat) * Math.PI / 180;
+      const dLng = (shelter.lng - userLng) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(userLat * Math.PI / 180) * Math.cos(shelter.lat * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c; // Distance in km
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = shelter;
+      }
+    });
+
+    return nearest;
+  };
 
   // 🌊 Pure JS 3D Live Wave Animation Matrix Engine
   useEffect(() => {
@@ -104,7 +142,7 @@ export default function Home() {
     };
   }, [emergencyMode]);
 
-  // 🗺️ Map Setup & Automated Live Data Threat Analysis
+  // 🗺️ Map Setup & Dynamic Proximity Threat Analysis Pipeline
   useEffect(() => {
     let active = true;
 
@@ -163,6 +201,10 @@ export default function Home() {
             map.setView([latitude, longitude], 13);
             userMarker.setLatLng([latitude, longitude]);
 
+            // 🎯 Dynamic Shelter Calculus execution on current location capture
+            const optimalShelter = calculateNearestShelter(latitude, longitude);
+            setAssignedShelter(optimalShelter);
+
             try {
               const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
               const geoData = await geoRes.json();
@@ -178,8 +220,7 @@ export default function Home() {
                 const liveWindMetersPerSec = wData.wind ? wData.wind.speed : 0;
                 const windMph = Math.round(liveWindMetersPerSec * 2.237);
                 
-                // 🌪️ AUTOMATED THREAT EVALUATION BLOCK
-                // If live wind speed exceeds 38 mph (Tropical Storm/Cyclone baseline boundary), engage emergency mode automatically
+                // Trigger warning autonomously if wind speeds hit tropical storm thresholds
                 const liveCycloneThreatDetected = windMph >= 38;
                 if (liveCycloneThreatDetected) {
                   setEmergencyMode(true);
@@ -191,14 +232,14 @@ export default function Home() {
                   precipitation: wData.clouds ? `${wData.clouds.all}%` : "10%",
                   windSpeed: `${windMph} mph`,
                   cycloneThreat: liveCycloneThreatDetected ? "⚠️ Active Threat Detected" : "None Active",
-                  safeZone: liveCycloneThreatDetected ? "LBRCE Cyclone Shelter Block-B" : "In-Place Shelter Optimal"
+                  safeZone: liveCycloneThreatDetected ? optimalShelter.name : "In-Place Shelter Optimal"
                 });
               }
             } catch (e) {
-              console.error("Live monitoring link delayed.", e);
+              console.error("Live monitoring data links delayed.", e);
             }
           },
-          (err) => console.warn("GPS tracking offline.", err),
+          (err) => console.warn("GPS spatial hardware link offline.", err),
           { enableHighAccuracy: true, timeout: 7000 }
         );
       }
@@ -208,14 +249,18 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  // 🚨 Dynamic Spatial Marker Map Routing Interceptor
+  // 🚨 Dynamic Real-Time Shelter Vector Routing Interceptor
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
     const L = (window as any).L;
 
+    // Remove any historical lingering markers/routes from past render loops
+    if (shelterMarkerRef.current) { map.removeLayer(shelterMarkerRef.current); shelterMarkerRef.current = null; }
+    if (routingLineRef.current) { map.removeLayer(routingLineRef.current); routingLineRef.current = null; }
+
     if (emergencyMode) {
-      // Pin Safe Place immediately on the map interface
+      // Pin calculated target safe house location
       const redShelterIcon = L.divIcon({
         className: 'shelter-div-icon',
         html: `<div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 18px solid #f43f5e; filter: drop-shadow(0 0 8px #f43f5e); animate: bounce 1s infinite;"></div>`,
@@ -223,45 +268,41 @@ export default function Home() {
         iconAnchor: [9, 18]
       });
 
-      const shelterMarker = L.marker([shelterCoords.lat, shelterCoords.lng], { icon: redShelterIcon }).addTo(map);
-      shelterMarker.bindPopup("<b style='color:#e11d48; font-weight:900;'>🚨 EMERGENCY TARGET DESTINATION:<br/>LBRCE Shelter Block-B</b>").openPopup();
+      const shelterMarker = L.marker([assignedShelter.lat, assignedShelter.lng], { icon: redShelterIcon }).addTo(map);
+      shelterMarker.bindPopup(`<div style="color:#000"><b style="color:#e11d48; font-weight:900;">🚨 OPTIMAL SAFE PLACE LOCKED</b><br/>${assignedShelter.name}<br/><span style="font-size:10px; color:#666">${assignedShelter.details}</span></div>`).openPopup();
       shelterMarkerRef.current = shelterMarker;
 
-      // Draw vector connector line from user to safety
+      // Render high-contrast connection vector path
       const routingLine = L.polyline(
-        [[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]],
+        [[userCoords.lat, userCoords.lng], [assignedShelter.lat, assignedShelter.lng]],
         { color: '#f43f5e', weight: 4, dashArray: '6, 8', opacity: 0.9 }
       ).addTo(map);
       routingLineRef.current = routingLine;
 
-      // Auto-adjust bounding box to visually redirect user view
-      const bounds = L.latLngBounds([[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]]);
-      map.fitBounds(bounds, { padding: [50, 50] });
+      // Fit map viewing grid boundaries perfectly between user and newly calculated shelter
+      const bounds = L.latLngBounds([[userCoords.lat, userCoords.lng], [assignedShelter.lat, assignedShelter.lng]]);
+      map.fitBounds(bounds, { padding: [60, 60] });
 
     } else {
-      // Clear pins safely if environmental thread loop normalizes
-      if (shelterMarkerRef.current) { map.removeLayer(shelterMarkerRef.current); shelterMarkerRef.current = null; }
-      if (routingLineRef.current) { map.removeLayer(routingLineRef.current); routingLineRef.current = null; }
       map.setView([userCoords.lat, userCoords.lng], 13);
       if (userMarkerRef.current) userMarkerRef.current.openPopup();
     }
-  }, [emergencyMode, userCoords]);
+  }, [emergencyMode, userCoords, assignedShelter]);
 
   // ⏱️ Dynamic Proportional Countdown Clock Engine
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
     if (emergencyMode) {
-      // Parse numerical velocity context to scale the countdown safety window dynamically
       const numericWind = parseInt(climate.windSpeed) || 45;
       
-      // Dynamic Calculus: Higher wind velocities = Closer core storm boundary = Lower evacuation timeframe window allowed
+      // Dynamic Calculus: Escalating wind velocity decreases available target escape time window
       let calculatedBufferHours = 5;
-      if (numericWind > 75) calculatedBufferHours = 1;      // Catastrophic
-      else if (numericWind > 55) calculatedBufferHours = 2; // Severe
-      else if (numericWind > 40) calculatedBufferHours = 3; // Moderate High
+      if (numericWind > 75) calculatedBufferHours = 1;      
+      else if (numericWind > 55) calculatedBufferHours = 2; 
+      else if (numericWind > 40) calculatedBufferHours = 3; 
       
-      let totalSeconds = calculatedBufferHours * 3600 + 45 * 60; // Base margin pad minutes
+      let totalSeconds = calculatedBufferHours * 3600 + 30 * 60;
       
       timer = setInterval(() => {
         if (totalSeconds <= 0) {
@@ -282,11 +323,11 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [emergencyMode, climate.windSpeed]);
 
-  // Typewriter introduction updates
+  // Typewriter instruction updates
   useEffect(() => {
     let i = 0;
-    const statusText = emergencyMode ? "⚠️ CRITICAL EVACUATION ROUTING STARTED." : "System Status: CLEAR.";
-    const fullGreeting = `Secure node linked: ${climate.location}. Live tracking telemetry ready. Current ${statusText}`;
+    const statusText = emergencyMode ? "⚠️ CRITICAL EVACUATION ROUTING ACTIVE." : "System Status: CLEAR.";
+    const fullGreeting = `Secure node linked: ${climate.location}. Algorithmic Proximity Safe-Zone Router initialized. ${statusText}`;
     setIntroText("");
     const timer = setInterval(() => {
       setIntroText(fullGreeting.slice(0, i));
@@ -308,16 +349,31 @@ export default function Home() {
             <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(244,63,94,0.3)]">
               CYCLONE ALERT SYSTEM
             </h1>
-            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Automated Emergency Interceptor</span>
+            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Automated Proximity Safe Router</span>
           </div>
           <div className="flex items-center gap-4">
             <button 
               onClick={() => {
-                setEmergencyMode(!emergencyMode);
-                // Adjust parameters manually during simulation trigger test
-                if(!emergencyMode) {
-                  setClimate(prev => ({...prev, windSpeed: "52 mph", cycloneThreat: "⚠️ Simulated Core Threat", safeZone: "LBRCE Cyclone Shelter Block-B"}));
+                const toggledMode = !emergencyMode;
+                setEmergencyMode(toggledMode);
+                if(toggledMode) {
+                  // Simulate an alternative far user spot for demo evaluation purposes
+                  // Chooses "Vijayawada West Relief Camp" automatically as it shifts relative proximity metrics
+                  const simulatedUserLat = 16.5200;
+                  const simulatedUserLng = 80.6000;
+                  setUserCoords({ lat: simulatedUserLat, lng: simulatedUserLng });
+                  
+                  const recalculatedShelter = calculateNearestShelter(simulatedUserLat, simulatedUserLng);
+                  setAssignedShelter(recalculatedShelter);
+                  
+                  setClimate(prev => ({
+                    ...prev, 
+                    windSpeed: "64 mph", 
+                    cycloneThreat: "⚠️ Simulated Proximity Threat",
+                    safeZone: recalculatedShelter.name
+                  }));
                 } else {
+                  // Reset back to system standard device parameters
                   setClimate(prev => ({...prev, windSpeed: "7 mph", cycloneThreat: "None Active", safeZone: "In-Place Shelter Optimal"}));
                 }
               }}
@@ -325,7 +381,7 @@ export default function Home() {
                 emergencyMode ? 'bg-rose-950/40 border-rose-500/50 text-rose-400 animate-pulse' : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white'
               }`}
             >
-              {emergencyMode ? "Reset to Safe Tracker" : "Force Simulation Alert"}
+              {emergencyMode ? "Reset System Vector" : "Simulate Alternate Proximity Alert"}
             </button>
             <div className="flex items-center gap-2 bg-sky-950/40 border border-sky-500/30 px-3 py-1 rounded-full">
               <span className={`w-2 h-2 rounded-full ${emergencyMode ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
@@ -355,12 +411,12 @@ export default function Home() {
         }`}>
           <div className="flex-1">
             <h4 className={`text-xs font-bold uppercase tracking-wider ${emergencyMode ? 'text-rose-400' : 'text-emerald-400'}`}>
-              {emergencyMode ? "🚨 AUTOMATED EMERGENCY INTERCEPT ACTIVE" : "🛡️ Shelter Relocation Status"}
+              {emergencyMode ? "🚨 ALGORITHMIC NEAREST-NEIGHBOR ROUTING ACTIVE" : "🛡️ Shelter Relocation Status"}
             </h4>
             <p className="text-xs text-slate-400 mt-1">
               {emergencyMode 
-                ? "Velocity index tripped. Safe place pinpointed on spatial map. Evacuate along route coordinates immediately before the dynamic wind countdown hits zero."
-                : "Atmospheric tracking arrays confirm safe wind velocities. Evacuation countdowns are currently resting at zero."}
+                ? `Proximity algorithm has calculated the closest safe zone according to your coordinates. Evacuate immediately before the dynamic storm countdown reaches zero.`
+                : "Atmospheric tracking arrays confirm safe wind velocities. Evacuation countdown arrays are currently resting."}
             </p>
           </div>
 
@@ -376,9 +432,9 @@ export default function Home() {
             <div className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex flex-col border transition-all ${
               emergencyMode ? 'bg-rose-950 border-rose-400 text-white animate-pulse' : 'bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
             }`}>
-              <span className="text-[8px] opacity-60 uppercase tracking-wider font-bold">TARGET SAFE SHELTER</span>
+              <span className="text-[8px] opacity-60 uppercase tracking-wider font-bold">ASSIGNED CLOSEST SAFE HOUSE</span>
               <span className="text-sm mt-0.5 font-sans font-extrabold">
-                {emergencyMode ? "LBRCE Cyclone Shelter Block-B" : "In-Place Shelter Optimal"}
+                {emergencyMode ? assignedShelter.name : "In-Place Shelter Optimal"}
               </span>
             </div>
           </div>
