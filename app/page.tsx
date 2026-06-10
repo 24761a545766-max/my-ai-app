@@ -15,10 +15,17 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const markerInstanceRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null);
+  const shelterMarkerRef = useRef<any>(null);
+  const routingLineRef = useRef<any>(null);
 
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  const [userCoords, setUserCoords] = useState({ lat: 16.6264, lng: 80.5404 });
+  
+  // Set default safe destination baseline (LBRCE Engineering College Coordinates Area)
+  const shelterCoords = { lat: 16.6586, lng: 80.5332 };
+
   const [climate, setClimate] = useState<ClimateData>({
     location: "Kondapalli, AP (Default)",
     temp: "32°C",
@@ -124,30 +131,28 @@ export default function Home() {
       const L: any = await loadScript();
       if (!active || !mapContainerRef.current || mapInstanceRef.current) return;
 
-      const defaultLat = 16.6264;
-      const defaultLng = 80.5404;
-
       const map = L.map(mapContainerRef.current, {
         zoomControl: false,
         attributionControl: false
-      }).setView([defaultLat, defaultLng], 12);
+      }).setView([userCoords.lat, userCoords.lng], 12);
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19
       }).addTo(map);
 
+      // Blue User Beacon Marker
       const pulseIcon = L.divIcon({
-        className: 'custom-div-icon',
+        className: 'user-div-icon',
         html: `<div style="background-color: #0ea5e9; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 12px #0ea5e9;"></div>`,
         iconSize: [14, 14],
         iconAnchor: [7, 7]
       });
 
-      const marker = L.marker([defaultLat, defaultLng], { icon: pulseIcon }).addTo(map);
-      marker.bindPopup("<b style='color:#000'>System Coordinate Active</b>").openPopup();
+      const userMarker = L.marker([userCoords.lat, userCoords.lng], { icon: pulseIcon }).addTo(map);
+      userMarker.bindPopup("<b style='color:#000'>System Coordinate Active</b>").openPopup();
 
       mapInstanceRef.current = map;
-      markerInstanceRef.current = marker;
+      userMarkerRef.current = userMarker;
 
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
@@ -155,9 +160,10 @@ export default function Home() {
             const { latitude, longitude } = position.coords;
             if (!active) return;
             
-            map.setView([latitude, longitude], 14);
-            marker.setLatLng([latitude, longitude]);
-            marker.getPopup().setContent("<b style='color:#000'>Live GPS Position Locked</b>").openPopup();
+            setUserCoords({ lat: latitude, lng: longitude });
+            map.setView([latitude, longitude], 13);
+            userMarker.setLatLng([latitude, longitude]);
+            userMarker.getPopup().setContent("<b style='color:#000'>Live GPS Position Locked</b>").openPopup();
 
             try {
               const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
@@ -171,7 +177,7 @@ export default function Home() {
               const wData = await weatherRes.json();
 
               if (wData && wData.main) {
-                const isStormy = wData.wind && wData.wind.speed > 17; // Cyclone threshold test trigger
+                const isStormy = wData.wind && wData.wind.speed > 17;
                 if (isStormy) setEmergencyMode(true);
 
                 setClimate({
@@ -180,7 +186,7 @@ export default function Home() {
                   precipitation: wData.clouds ? `${wData.clouds.all}%` : "10%",
                   windSpeed: wData.wind ? `${Math.round(wData.wind.speed * 2.237)} mph` : "7 mph",
                   cycloneThreat: isStormy ? "CAT-1 Approaching" : "None Active",
-                  safeZone: isStormy ? "LBRCE Shelter Block-B" : "In-Place Shelter Optimal"
+                  safeZone: isStormy ? "LBRCE Cyclone Shelter Block-B" : "In-Place Shelter Optimal"
                 });
               }
             } catch (e) {
@@ -197,12 +203,59 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  // ⏱️ Evacuation Countdown Timer Engine (Handles default reset bounds)
+  // 🚨 Dynamic Shelter Route Plotting Engine
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const L = (window as any).L;
+
+    if (emergencyMode) {
+      // 1. Create a vivid high-visibility red flashing triangle marker for the safe place
+      const redShelterIcon = L.divIcon({
+        className: 'shelter-div-icon',
+        html: `<div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 18px solid #f43f5e; filter: drop-shadow(0 0 8px #f43f5e); animate: bounce 1s infinite;"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 18]
+      });
+
+      const shelterMarker = L.marker([shelterCoords.lat, shelterCoords.lng], { icon: redShelterIcon }).addTo(map);
+      shelterMarker.bindPopup("<b style='color:#e11d48; font-weight:900;'>🚨 TARGET SAFE PLACE:<br/>LBRCE Shelter Block-B</b>").openPopup();
+      shelterMarkerRef.current = shelterMarker;
+
+      // 2. Plot a dashed vector baseline path between user and shelter
+      const routingLine = L.polyline(
+        [[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]],
+        { color: '#f43f5e', weight: 3, dashArray: '6, 8', opacity: 0.85 }
+      ).addTo(map);
+      routingLineRef.current = routingLine;
+
+      // 3. Smooth fit the viewport grid bounds to frame both nodes perfectly
+      const bounds = L.latLngBounds([[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]]);
+      map.fitBounds(bounds, { padding: [40, 40] });
+
+    } else {
+      // Clean up emergency vectors when system state falls back to resting parameters
+      if (shelterMarkerRef.current) {
+        map.removeLayer(shelterMarkerRef.current);
+        shelterMarkerRef.current = null;
+      }
+      if (routingLineRef.current) {
+        map.removeLayer(routingLineRef.current);
+        routingLineRef.current = null;
+      }
+      // Return camera view focus to original device spot lock
+      map.setView([userCoords.lat, userCoords.lng], 14);
+      if (userMarkerRef.current) {
+        userMarkerRef.current.openPopup();
+      }
+    }
+  }, [emergencyMode, userCoords]);
+
+  // ⏱️ Evacuation Countdown Timer Engine
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
     if (emergencyMode) {
-      let totalSeconds = 4 * 3600 + 12 * 60; // 4 Hours initialization block
+      let totalSeconds = 4 * 3600 + 12 * 60;
       timer = setInterval(() => {
         if (totalSeconds <= 0) {
           clearInterval(timer);
@@ -216,14 +269,12 @@ export default function Home() {
         });
       }, 1000);
     } else {
-      // Default state reset matrix when no alert is flagged
       setCountdown({ hours: 0, minutes: 0, seconds: 0 });
     }
-
     return () => clearInterval(timer);
   }, [emergencyMode]);
 
-  // Typewriter text banner string assembly
+  // Typewriter banner string assembly
   useEffect(() => {
     let i = 0;
     const statusText = emergencyMode ? "⚠️ CRITICAL WARNING VECTOR DETECTED." : "System Status: CLEAR.";
@@ -292,7 +343,7 @@ export default function Home() {
             </h4>
             <p className="text-xs text-slate-400 mt-1">
               {emergencyMode 
-                ? "Extreme storm surges mapped. Clear transit lanes immediately to reach the pinned geographical backup shelter on your display tracker."
+                ? "Extreme storm surges mapped. Route lines plotted to safe place. Move immediately along designated lanes before time hits zero."
                 : "Atmospheric tracking arrays confirm safe parameters. Evacuation countdowns are safely resting."}
             </p>
           </div>
@@ -319,11 +370,11 @@ export default function Home() {
 
         {/* Expanded Map Spatial Grid Interface Area */}
         <div className="flex-1 grid grid-cols-1 gap-6 items-stretch mb-6">
-          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[380px]">
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[400px]">
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[320px] z-10" />
+            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[340px] z-10" />
           </section>
         </div>
 
