@@ -23,7 +23,7 @@ export default function Home() {
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [userCoords, setUserCoords] = useState({ lat: 16.6264, lng: 80.5404 });
   
-  // Set default safe destination baseline (LBRCE Engineering College Coordinates Area)
+  // Designated Safe Location (LBRCE Cyclone Shelter Block-B Coordinates)
   const shelterCoords = { lat: 16.6586, lng: 80.5332 };
 
   const [climate, setClimate] = useState<ClimateData>({
@@ -104,7 +104,7 @@ export default function Home() {
     };
   }, [emergencyMode]);
 
-  // 🗺️ Leaflet Map Initialization & Dynamic Weather Ingestion Pipeline
+  // 🗺️ Leaflet Map Initialization & Weather Data Ingestion Pipeline
   useEffect(() => {
     let active = true;
 
@@ -140,7 +140,6 @@ export default function Home() {
         maxZoom: 19
       }).addTo(map);
 
-      // Blue User Beacon Marker
       const pulseIcon = L.divIcon({
         className: 'user-div-icon',
         html: `<div style="background-color: #0ea5e9; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 12px #0ea5e9;"></div>`,
@@ -203,14 +202,13 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  // 🚨 Dynamic Shelter Route Plotting Engine
+  // 🚨 Dynamic Emergency Routing Map Layer
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
     const L = (window as any).L;
 
     if (emergencyMode) {
-      // 1. Create a vivid high-visibility red flashing triangle marker for the safe place
       const redShelterIcon = L.divIcon({
         className: 'shelter-div-icon',
         html: `<div style="width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 18px solid #f43f5e; filter: drop-shadow(0 0 8px #f43f5e); animate: bounce 1s infinite;"></div>`,
@@ -222,19 +220,16 @@ export default function Home() {
       shelterMarker.bindPopup("<b style='color:#e11d48; font-weight:900;'>🚨 TARGET SAFE PLACE:<br/>LBRCE Shelter Block-B</b>").openPopup();
       shelterMarkerRef.current = shelterMarker;
 
-      // 2. Plot a dashed vector baseline path between user and shelter
       const routingLine = L.polyline(
         [[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]],
         { color: '#f43f5e', weight: 3, dashArray: '6, 8', opacity: 0.85 }
       ).addTo(map);
       routingLineRef.current = routingLine;
 
-      // 3. Smooth fit the viewport grid bounds to frame both nodes perfectly
       const bounds = L.latLngBounds([[userCoords.lat, userCoords.lng], [shelterCoords.lat, shelterCoords.lng]]);
       map.fitBounds(bounds, { padding: [40, 40] });
 
     } else {
-      // Clean up emergency vectors when system state falls back to resting parameters
       if (shelterMarkerRef.current) {
         map.removeLayer(shelterMarkerRef.current);
         shelterMarkerRef.current = null;
@@ -243,8 +238,7 @@ export default function Home() {
         map.removeLayer(routingLineRef.current);
         routingLineRef.current = null;
       }
-      // Return camera view focus to original device spot lock
-      map.setView([userCoords.lat, userCoords.lng], 14);
+      map.setView([userCoords.lat, userCoords.lng], 13);
       if (userMarkerRef.current) {
         userMarkerRef.current.openPopup();
       }
@@ -274,11 +268,11 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [emergencyMode]);
 
-  // Typewriter banner string assembly
+  // Typewriter banner greeting updates
   useEffect(() => {
     let i = 0;
     const statusText = emergencyMode ? "⚠️ CRITICAL WARNING VECTOR DETECTED." : "System Status: CLEAR.";
-    const fullGreeting = `Secure node linked: ${climate.location}. Climate Telemetry Engine initialized. Current ${statusText}`;
+    const fullGreeting = `Secure node linked: ${climate.location}. Weather Engine initialized. Current ${statusText}`;
     setIntroText("");
     const timer = setInterval(() => {
       setIntroText(fullGreeting.slice(0, i));
@@ -294,13 +288,13 @@ export default function Home() {
 
       <div className="relative z-10 w-full max-w-6xl mx-auto py-8 px-4 md:px-6 flex flex-col justify-between min-h-screen">
         
-        {/* Header Panel */}
+        {/* Top Header Panel */}
         <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl mb-6">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(14,165,233,0.4)]">
-              SHELL AI
+            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(244,63,94,0.3)]">
+              CYCLONE ALERT SYSTEM
             </h1>
-            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Emergency Weather & Map Interface</span>
+            <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Atmospheric Telemetry Grid</span>
           </div>
           <div className="flex items-center gap-4">
             <button 
@@ -333,7 +327,7 @@ export default function Home() {
           ))}
         </section>
 
-        {/* Countdown Alert Notification Dock */}
+        {/* Evacuation Countdown Block */}
         <div className={`mb-6 p-5 backdrop-blur-md rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border transition-all duration-500 ${
           emergencyMode ? 'bg-rose-950/30 border-rose-500/30 shadow-[0_0_25px_rgba(244,63,94,0.15)]' : 'bg-emerald-950/20 border-emerald-500/20'
         }`}>
@@ -370,11 +364,11 @@ export default function Home() {
 
         {/* Expanded Map Spatial Grid Interface Area */}
         <div className="flex-1 grid grid-cols-1 gap-6 items-stretch mb-6">
-          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[400px]">
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[420px]">
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[340px] z-10" />
+            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[360px] z-10" />
           </section>
         </div>
 
