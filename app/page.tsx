@@ -283,10 +283,10 @@ export default function Home() {
   }, [climate.location, emergencyMode]);
 
   return (
-    <main className="relative min-h-screen w-full overflow-x-hidden font-sans bg-[#000511]">
+    <main className="relative min-h-screen w-full overflow-x-hidden font-sans bg-[#000511] pb-12">
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto py-8 px-4 md:px-6 flex flex-col justify-between min-h-screen">
+      <div className="relative z-10 w-full max-w-6xl mx-auto py-8 px-4 md:px-6 flex flex-col justify-between">
         
         {/* Top Header Panel */}
         <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl mb-6">
@@ -362,14 +362,49 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Expanded Map Spatial Grid Interface Area */}
-        <div className="flex-1 grid grid-cols-1 gap-6 items-stretch mb-6">
-          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[420px]">
+        {/* Map Spatial Grid Interface Area */}
+        <div className="grid grid-cols-1 gap-6 items-stretch mb-6">
+          <section className="bg-slate-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col min-h-[380px]">
             <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3 px-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">Live Spatial Telemetry Grid</h3>
             </div>
-            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[360px] z-10" />
+            <div ref={mapContainerRef} className="flex-1 w-full rounded-xl bg-black/50 overflow-hidden min-h-[320px] z-10" />
           </section>
+        </div>
+
+        {/* 🛡️ Bilingual Precautions & Guidelines Panel */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          
+          {/* English Precautions */}
+          <section className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center gap-2 border-b border-white/10 pb-3 mb-4">
+              <span className="text-lg">🇬🇧</span>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-sky-400">Safety Precautions</h3>
+            </div>
+            <ul className="space-y-3 text-xs text-slate-300 list-disc pl-4 marker:text-sky-500">
+              <li><strong className="text-white">Stay Informed:</strong> Keep checking the map route and tracking vectors for changes.</li>
+              <li><strong className="text-white">Evacuate Early:</strong> Pack an emergency kit and follow the route before the countdown timer hits zero.</li>
+              <li><strong className="text-white">Power Safety:</strong> Disconnect all electrical appliances to avoid short circuits.</li>
+              <li><strong className="text-white">Secure Belongings:</strong> Move loose outdoor items indoors and lock doors/windows tightly.</li>
+              <li><strong className="text-white">Avoid Water Bodies:</strong> Keep away from floodwaters, storm drains, and open shores.</li>
+            </ul>
+          </section>
+
+          {/* Telugu Precautions */}
+          <section className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center gap-2 border-b border-white/10 pb-3 mb-4">
+              <span className="text-lg">🇮🇳</span>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-rose-400">జాగ్రత్తలు (Telugu Guidelines)</h3>
+            </div>
+            <ul className="space-y-3 text-xs text-slate-300 list-disc pl-4 marker:text-rose-400 leading-relaxed">
+              <li><strong className="text-white">సమాచారం తెలుసుకోండి:</strong> మ్యాప్ రూట్ మరియు తుఫాను హెచ్చరికలను నిరంతరం గమనిస్తూ ఉండండి.</li>
+              <li><strong className="text-white">త్వరగా తరలివెళ్ళండి:</strong> కౌంట్‌డౌన్ సమయం ముగిసేలోపే అత్యవసర వస్తువులతో సురక్షిత ప్రాంతానికి చేరుకోండి.</li>
+              <li><strong className="text-white">విద్యుత్ జాగ్రత్తలు:</strong> షార్ట్ సర్క్యూట్‌లను నివారించడానికి అన్ని ఎలక్ట్రికల్ పవర్ మెయిన్స్ ఆపివేయండి.</li>
+              <li><strong className="text-white">సురక్షితంగా ఉండండి:</strong> ఇంటి తలుపులు, కిటికీలు గట్టిగా వేసి ఉంచండి. బయట వస్తువులను లోపల పెట్టండి.</li>
+              <li><strong className="text-white">వరద నీటికి దూరంగా ఉండండి:</strong> కాలువలు, చెరువులు మరియు వరద నీరు ప్రవహించే ప్రాంతాలకు వెళ్లవద్దు.</li>
+            </ul>
+          </section>
+
         </div>
 
         {/* Footer */}
