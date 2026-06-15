@@ -184,7 +184,7 @@ export default function Home() {
     return () => { document.body.removeChild(script); };
   }, []);
 
-  // 🛰️ AUTOMATED RADAR INTERCEPT LOOP (Fires hands-free on mount)
+  // 🛰️ UNTOUCHED AUTOMATED RADAR INTERCEPT LOOP (Fires completely hands-free on mount)
   useEffect(() => {
     const runRadarTelemetryCheck = () => {
       if (!("geolocation" in navigator)) return;
@@ -199,6 +199,7 @@ export default function Home() {
           userMarker.setLatLng([latitude, longitude]);
         }
 
+        // 🎯 Algorithmic Proximity Safe Zone Router Assignment
         const optimalShelter = calculateNearestShelter(latitude, longitude);
         setAssignedShelter(optimalShelter);
 
@@ -216,6 +217,8 @@ export default function Home() {
           if (wData && wData.main) {
             const windMph = Math.round((wData.wind ? wData.wind.speed : 0) * 2.237);
             
+            // 🚨 CRITICAL HANDS-FREE AUTOMATED THREAT INTERCEPT TRIGGER
+            // If live wind speeds are flagged over 38 mph, turn on the alert engine automatically
             const cycloneThreatDetected = windMph >= 38;
             setEmergencyMode(cycloneThreatDetected);
 
@@ -236,8 +239,10 @@ export default function Home() {
       { enableHighAccuracy: true });
     };
 
+    // Execute tracking immediately on page mount, completely click-free
     runRadarTelemetryCheck();
 
+    // Setup active background polling to run automatically every 60 seconds
     const telemetryInterval = setInterval(runRadarTelemetryCheck, 60000);
     return () => clearInterval(telemetryInterval);
   }, []);
@@ -305,10 +310,10 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [emergencyMode, climate.windSpeed]);
 
-  // Typewriter status window
+  // Typewriter introduction status assembly
   useEffect(() => {
     let i = 0;
-    const statusText = emergencyMode ? "⚠️ ALERT PROTECTION ENGAGED." : "System Monitor: ACTIVE.";
+    const statusText = emergencyMode ? "⚠️ ALERT HARMONIZATION ENGAGED." : "System Monitor: ACTIVE.";
     const fullGreeting = `Secure connection active. Autocall tracking grid synced with device hardware. ${statusText}`;
     setIntroText("");
     const timer = setInterval(() => {
@@ -328,12 +333,13 @@ export default function Home() {
         {/* Header Panel */}
         <header className="flex justify-between items-center bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-2xl px-6 py-4 shadow-xl mb-6">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(14,165,233,0.3)]">
-              CYCLONE TRACK
+            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_4px_12px_rgba(244,63,94,0.3)]">
+              CYCLONE ALERT SYSTEM
             </h1>
             <span className="text-[9px] font-mono text-sky-400 tracking-widest uppercase mt-0.5">Automated Zero-Touch Interceptor</span>
           </div>
           <div className="flex items-center gap-4">
+            {/* 🛠️ Safe Simulation Button Mock for Testing Output Channels */}
             <button 
               onClick={() => {
                 const triggerToggle = !emergencyMode;
