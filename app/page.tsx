@@ -184,7 +184,7 @@ export default function Home() {
     return () => { document.body.removeChild(script); };
   }, []);
 
-  // 🛰️ AUTOMATED RADAR INTERCEPT LOOP (Fires hands-free on mount)
+  // 🛰 ] AUTOMATED RADAR INTERCEPT LOOP (Fires hands-free on mount)
   useEffect(() => {
     const runRadarTelemetryCheck = () => {
       if (!("geolocation" in navigator)) return;
@@ -355,7 +355,7 @@ export default function Home() {
             </button>
             <div className="flex items-center gap-2 bg-sky-950/40 border border-sky-500/30 px-3 py-1 rounded-full">
               <span className={`w-2 h-2 rounded-full ${emergencyMode ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
-              <span className="text-[10px] font-mono text-gray-300 uppercase tracking-wider font-bold">Charan Edition</span>
+              <span className="text-[10px] font-mono text-gray-300 uppercase tracking-wider font-bold">LIVE RADAR</span>
             </div>
           </div>
         </header>
@@ -399,7 +399,7 @@ export default function Home() {
             </div>
             
             <div className={`px-4 py-2 rounded-lg text-xs font-mono font-bold flex flex-col border transition-all ${
-              emergencyMode ? 'bg-rose-950 border-rose-400 text-white' : 'bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
+              emergencyMode ? 'bg-rose-950 border-rose-400 text-white animate-pulse' : 'bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
             }`}>
               <span className="text-[8px] opacity-60 uppercase tracking-wider font-bold">AUTOMATED NEAREST REFUGE</span>
               <span className="text-sm mt-0.5 font-sans font-extrabold">
